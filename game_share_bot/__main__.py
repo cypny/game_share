@@ -2,21 +2,19 @@ import asyncio
 import os
 from aiogram import Bot, Dispatcher, types
 from dotenv import load_dotenv
-
+from message_controller import start_listening
 load_dotenv()
-API_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher()
+bot = Bot(token=BOT_TOKEN)
 
 
-@dp.message()
-async def echo_handler(message: types.Message):
-    await message.answer("я бот")
+
+
 
 
 async def main():
-    await dp.start_polling(bot)
+    await start_listening(bot)
 
 
 if __name__ == "__main__":
