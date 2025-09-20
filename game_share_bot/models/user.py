@@ -3,8 +3,9 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from infrastructure.database import Base
 
+
 # TODO
-# Степа писал модели, могут пригодиться, см предыдущий коммит
+# note(boboboba): Степа писал модели, могут пригодиться, см коммит 6e7ade90361dba68fba33fd4ffc150343875e1c1
 class User(Base):
     __tablename__ = "users"
 
