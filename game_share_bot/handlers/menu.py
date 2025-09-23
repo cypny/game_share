@@ -1,16 +1,16 @@
 from aiogram import Router, types
 from aiogram.types  import CallbackQuery
-from keyboards.inline import main_menu
+
+from callbacks import MenuCallback
+from keyboards.inline import main_menu, catalog
 
 router = Router()
 
-@router.callback_query(lambda c: c.data.startswith("menu_"))
-async def menu_callback(callback: CallbackQuery):
-    action = callback.data.split("_")[1]
-
-    if action == "games":
-        await callback.message.answer("Cписок игр")
-    elif action == "orders":
-        await callback.message.answer("Ваши подписки")
-
+# TODO: может убрать MenuCallback и делать просто через строки
+@router.callback_query(MenuCallback.filter())
+async def handle_menu(callback: CallbackQuery, callback_data: MenuCallback):
     await callback.answer()
+    if callback_data.section == "subs":
+        return
+    elif callback_data.section == "main":
+        await callback.message.answer("Главное меню", reply_markup=main_menu())

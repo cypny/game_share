@@ -1,11 +1,20 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from callbacks import MenuCallback
+
 def main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="🎮 Игры", callback_data="menu_games"),
-                InlineKeyboardButton(text="📦 Подписки", callback_data="menu_orders")
+                InlineKeyboardButton(text="🎮 Каталог", callback_data="catalog"),
+                InlineKeyboardButton(text="📦 Подписки", callback_data=MenuCallback(section="subs").pack())
             ]
+        ]
+    )
+
+def catalog() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="⬅️ Меню", callback_data=MenuCallback(section="main").pack())]
         ]
     )

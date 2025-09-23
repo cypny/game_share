@@ -4,7 +4,9 @@ import os
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
-from handlers import start, user, menu, debug
+from handlers import routers
+from middlewares import DbSessionMiddleware
+from infrastructure.database import session_maker
 
 
 async def main():
@@ -13,10 +15,10 @@ async def main():
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
 
-    dp.include_router(start.router)
-    dp.include_router(user.router)
-    dp.include_router(menu.router)
-    dp.include_router(debug.router)
+    dp.update.middleware(DbSessionMiddleware(session_pool=session_maker))
+
+    for router in routers:
+        dp.include_router(router)
 
     await dp.start_polling(bot)
 

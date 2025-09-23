@@ -1,5 +1,5 @@
 import subprocess
-
+from pathlib import Path
 
 def run_command(command):
     """Выполняет команду и выводит весь вывод"""
@@ -10,7 +10,14 @@ def run_command(command):
         print(result.stderr)
 
 
+def create_logs_directory():
+    """Создает папку для логов"""
+    logs_path = Path("logs")
+    logs_path.mkdir(exist_ok=True)
+
+
 def run_migrations():
+    create_logs_directory()
     run_command("alembic revision --autogenerate")
     run_command("alembic upgrade head")
 
