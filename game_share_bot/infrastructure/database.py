@@ -1,11 +1,7 @@
-import os
-
-from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine, AsyncSession
 
 #TODO
-load_dotenv()
-CONN_STRING = os.getenv("CONN_STRING_ASYNC")
-
-engine = create_async_engine(CONN_STRING, echo=True)
-session_maker = async_sessionmaker(engine, expire_on_commit=False)
+def init_db(conn_string_async: str) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
+    engine = create_async_engine(conn_string_async, echo=True)
+    session_maker = async_sessionmaker(engine, expire_on_commit=False)
+    return engine, session_maker

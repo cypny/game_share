@@ -1,8 +1,8 @@
-from aiogram import Router, types
+from aiogram import Router
 from aiogram.types  import CallbackQuery
 
-from callbacks import MenuCallback
-from keyboards.inline import main_menu, catalog
+from core.callbacks import MenuCallback
+from core.keyboards.inline import main_menu_kb
 
 router = Router()
 
@@ -13,4 +13,4 @@ async def handle_menu(callback: CallbackQuery, callback_data: MenuCallback):
     if callback_data.section == "subs":
         return
     elif callback_data.section == "main":
-        await callback.message.answer("Главное меню", reply_markup=main_menu())
+        await callback.message.answer("Главное меню", reply_markup=main_menu_kb())

@@ -4,14 +4,19 @@ import os
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
-from handlers import routers
-from middlewares import DbSessionMiddleware
-from infrastructure.database import session_maker
+from core.handlers import routers
+from core.middlewares import DbSessionMiddleware
+from infrastructure.database import init_db
 
 
 async def main():
     load_dotenv()
+
     BOT_TOKEN = os.getenv("BOT_TOKEN")
+    CONN_STRING_ASYNC = os.getenv("CONN_STRING_ASYNC")
+
+    engine, session_maker = init_db(CONN_STRING_ASYNC)
+
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
 
