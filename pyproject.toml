@@ -1,0 +1,23 @@
+[project]
+name = "game-share-bot"
+version = "0.1.0"
+description = "Telegram bot for the Console Games Library"
+authors = [
+    {name = "Team 21",email = "you@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiogram (>=3.22.0,<4.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "sqlalchemy (==2.0.43)",
+    "alembic (==1.16.5)",
+    "psycopg2-binary (==2.9.10)",
+    "asyncpg (==0.30.0)",
+    "greenlet (>=3.2.4,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
