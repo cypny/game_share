@@ -1,12 +1,13 @@
 import asyncio
+import logging
 import os
 
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
-from core.handlers import routers
-from core.middlewares import DbSessionMiddleware
-from infrastructure.database import init_db
+from .core.handlers import routers
+from .core.middlewares import DbSessionMiddleware
+from .infrastructure.database import init_db
 
 
 async def main():
@@ -28,5 +29,5 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    print("running")
+    logging.basicConfig(level=logging.INFO)
     asyncio.run(main())

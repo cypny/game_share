@@ -1,13 +1,10 @@
-import re
-
 from aiogram import Router, F, types
 from aiogram.types  import CallbackQuery
-from aiogram.filters import CommandObject, Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.repositories import GameRepository
-from core.keyboards.inline import catalog_kb
-from infrastructure.utils.formatting import format_game_full, format_game_short, format_games_list
+from game_share_bot.infrastructure.repositories import GameRepository
+from game_share_bot.core.keyboards.inline import catalog_kb
+from game_share_bot.infrastructure.utils.formatting import format_game_full, format_game_short, format_games_list
 
 router = Router()
 

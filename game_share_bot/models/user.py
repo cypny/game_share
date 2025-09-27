@@ -1,7 +1,7 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from models import Base
+from game_share_bot.models import Base
 
 
 # TODO

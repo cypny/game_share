@@ -1,4 +1,4 @@
-from models import Game
+from game_share_bot.models import Game
 
 def format_game_short(game: Game) -> str:
     desc_short = (game.description[:100] + "...") if len(game.description) > 100 else game.description

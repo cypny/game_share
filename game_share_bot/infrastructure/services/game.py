@@ -1,6 +1,6 @@
 from typing import List
-from infrastructure.repositories import GameRepository
-from models import Game
+from game_share_bot.infrastructure.repositories import GameRepository
+from game_share_bot.models import Game
 
 class GameService:
     def __init__(self, repo: GameRepository):

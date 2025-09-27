@@ -1,10 +1,7 @@
-from typing import Optional
-
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import User, Game
-from infrastructure.repositories.base import BaseRepository
+from game_share_bot.models import Game
+from game_share_bot.infrastructure.repositories.base import BaseRepository
 
 
 class GameRepository(BaseRepository[Game]):

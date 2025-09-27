@@ -9,7 +9,7 @@ router = Router()
 @router.message(Command("debug"))
 async def cmd_check_db(message: types.Message, session: AsyncSession):
     try:
-        result = await session.execute(text("SELECT 1"))
+        _ = await session.execute(text("SELECT 1"))
         await message.answer("✅ Подключение к БД успешно!")
 
     except Exception as e:

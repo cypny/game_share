@@ -3,7 +3,7 @@ from typing import TypeVar, Generic, Type, Any, List, Optional
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Base
+from game_share_bot.models import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
 

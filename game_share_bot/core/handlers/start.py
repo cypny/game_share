@@ -1,7 +1,7 @@
 from aiogram import Router, types
 from aiogram.filters import CommandStart
 
-from core.keyboards.inline import main_menu_kb
+from game_share_bot.core.keyboards.inline import main_menu_kb
 
 router = Router()
 
