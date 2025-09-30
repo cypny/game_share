@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gameshare_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$POSTGRES_USER\" -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: .
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      CONN_STRING_SYNC: postgresql+psycopg2://${POSTGRES_USER}@db:5432/${POSTGRES_DB}
+    command: ["poetry", "run", "alembic", "upgrade", "head"]
+
+  bot:
+    build: .
+    container_name: game_share_bot
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      CONN_STRING_SYNC: postgresql+psycopg2://${POSTGRES_USER}@db:5432/${POSTGRES_DB}
+      CONN_STRING_ASYNC: postgresql+asyncpg://${POSTGRES_USER}@db:5432/${POSTGRES_DB}
+
+volumes:
+  pgdata:
