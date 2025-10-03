@@ -53,3 +53,13 @@ poetry run alembic revision --autogenerate -m "описание"
 ```
 
 Она создаст файл .py в папке alembic/versions (его надо бы закоммитить)
+
+Применить миграции:
+```bash
+poetry run alembic upgrade head
+```
+
+Создать БД gameshare под пользователем user
+```bash
+createdb -U user gameshare
+```
