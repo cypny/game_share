@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, ContentType
+from aiogram.types import CallbackQuery, Message, ContentType, ReplyKeyboardRemove
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.keyboards import register_kb
@@ -14,8 +14,8 @@ router = Router()
 async def register(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     await callback.answer()
 
-    if UserRepository(session).get_by_tg_id(callback.from_user.id):
-        await callback.message.answer("Ты уже зарегистрирован!", reply_markup=None)
+    if await UserRepository(session).get_by_tg_id(callback.from_user.id):
+        await callback.message.answer("Ты уже зарегистрирован!", reply_markup=ReplyKeyboardRemove())
     else:
         await callback.message.answer(
             "Пожалуйста, поделитесь номером телефона для регистрации",
@@ -38,6 +38,8 @@ async def handle_phone_number(message: Message, session: AsyncSession, state: FS
 
     await state.clear()
     if result is None:
-        await message.answer("Произошла непредвиденная ошибка! Обратись в поддержку", reply_markup=None)
+        await message.answer("Произошла непредвиденная ошибка! Обратись в поддержку",
+                             reply_markup=ReplyKeyboardRemove())
     else:
-        await message.answer(f"✅ Номер +{phone_number} сохранён! Регистрация завершена.", reply_markup=None)
+        await message.answer(f"✅ Номер +{phone_number} сохранён! Регистрация завершена.",
+                             reply_markup=ReplyKeyboardRemove())
