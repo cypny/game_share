@@ -2,10 +2,10 @@ from aiogram import Router, F, types
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from game_share_bot.infrastructure.repositories import GameRepository
 from game_share_bot.core.keyboards.inline import catalog_kb
-from game_share_bot.infrastructure.utils.formatting import format_game_short, format_game_full
 from game_share_bot.core.logging import get_logger
+from game_share_bot.infrastructure.repositories import GameRepository
+from game_share_bot.infrastructure.utils.formatting import format_game_short, format_game_full
 
 router = Router()
 logger = get_logger(__name__)
@@ -25,7 +25,7 @@ async def catalog(callback: CallbackQuery, session: AsyncSession):
         reply = "Каталог (все игры пока что): \n" + games_str
 
         await callback.answer()
-        await callback.message.answer(reply, parse_mode="HTML", reply_markup=catalog_kb())
+        await callback.message.edit_text(reply, parse_mode="HTML", reply_markup=catalog_kb())
         logger.info(f"Каталог успешно отправлен пользователю {user_id}")
 
     except Exception as e:

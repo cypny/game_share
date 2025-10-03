@@ -11,7 +11,7 @@ router = Router()
 
 @router.callback_query(F.data == "register")
 async def register(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer("Введите свой номер телефона")
+    await callback.message.edit_text("Введите свой номер телефона")
     await state.set_state(RegisterState.waiting_for_phone)
     await callback.answer()
 

@@ -47,8 +47,6 @@ async def main():
         dp.include_router(router)
         logger.debug(f"Подключен роутер: {router.name}")
 
-    logger.info("Бот успешно запущен")
-
     try:
         await dp.start_polling(bot)
     except Exception as e:

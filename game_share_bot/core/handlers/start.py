@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 async def cmd_start(message: types.Message):
     user_id = message.from_user.id
     username = message.from_user.username
-    logger.info(f"Новая команда /start от пользователя {user_id} (@{username})")
+    logger.info(f"Команда /start от пользователя {user_id} (@{username})")
 
     await message.answer("/start command", reply_markup=main_menu_kb())
     logger.debug(f"Стартовое сообщение отправлено пользователю {user_id}")
