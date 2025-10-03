@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.types import CallbackQuery
 
 from game_share_bot.core.callbacks import MenuCallback
-from game_share_bot.core.keyboards.inline import main_menu_kb
+from game_share_bot.core.keyboards import main_menu_kb
 from game_share_bot.core.logging import get_logger
 
 router = Router()
