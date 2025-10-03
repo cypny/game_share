@@ -10,53 +10,41 @@ Telegram-бот для доступа к библиотеке консольны
 - Docker для контейнеризации
 - YooKassa для формирования и обработки платежей
 
-### Установка
+### Подготовка
 
-1. Установите зависимости:
-```bash
-poetry install
-```
-
-2. Создайте файл .env на основе .env.example:
+1. Создайте файл .env на основе .env.example:
 ```bash
 cp .env.example .env
 ```
 
-3. Отредактируйте .env файл, добавив необходимые значения   
-
-   (В CONN_STRING_SYNC и CONN_STRING_ASYNC вместо user и password укажите свои данные для подключения к PostgreSQL)
-
-4. Создайте БД под пользователем, которого указали в CONN_STRING_SYNC и CONN_STRING_ASYNC (подставьте в команду вместо user)
-```bash
-createdb -U user gameshare
-```
-
-5. Примените миграции, чтобы создать необходимые таблицы в базе данных:
-```bash
-poetry run alembic upgrade head
-```
+2. Отредактируйте .env файл, добавив токен бота
 
 ### Запуск
 
 ```bash
-poetry run python -m game_share_bot
+docker compose up -d
+```
+
+### Остановка приложения
+```bash
+docker compose down
 ```
 
 ### Разработка
 
-Если нужно добавить новую зависимость:
+Установка зависимостей:
 ```bash
-poetry add package_name
+poetry install
 ```
 
-Если нужно добавить новую dev-зависимость (pytest и подобное), ее лучше добавлять отдельной командой:
+Запуск вне контейнера:
 ```bash
-poetry add --dev package_name
+poetry run python -m game_share_bot
 ```
 
-Если нужно удалить зависимость:
+Пересобрать контейнер:
 ```bash
-poetry remove package_name
+docker compose build
 ```
 
 Eсли меняете models - создавайте новую миграцию:
@@ -64,8 +52,4 @@ Eсли меняете models - создавайте новую миграцию
 poetry run alembic revision --autogenerate -m "описание"
 ```
 
-Она создаст файл .py в папке alembic/versions (его надо бы закоммитить)  
-После чего примените миграцию (остальные тоже будут должны ее применить у себя):  
-```bash
-poetry run alembic upgrade head
-```
+Она создаст файл .py в папке alembic/versions (его надо бы закоммитить)
