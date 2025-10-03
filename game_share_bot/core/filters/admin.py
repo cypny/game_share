@@ -2,7 +2,7 @@ from aiogram.filters import Filter
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.repositories import UserRepository
+from game_share_bot.infrastructure.repositories import UserRepository
 
 
 class IsAdmin(Filter):

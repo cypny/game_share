@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.filters import IsAdmin
+from game_share_bot.core.filters import IsAdmin
 from game_share_bot.core.logging import get_logger
 
 router = Router()

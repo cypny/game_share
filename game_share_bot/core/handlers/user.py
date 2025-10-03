@@ -1,19 +1,20 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types  import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from game_share_bot.core.keyboards.inline import request_contact_kb
 from game_share_bot.core.states import RegisterState
 from game_share_bot.infrastructure.repositories import UserRepository
 
 router = Router()
+
 
 @router.callback_query(F.data == "register")
 async def register(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Введите свой номер телефона")
     await state.set_state(RegisterState.waiting_for_phone)
     await callback.answer()
+
 
 @router.message(RegisterState.waiting_for_phone)
 async def handle_phone_number(message: Message, session: AsyncSession):
