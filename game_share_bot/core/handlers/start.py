@@ -2,7 +2,7 @@ from aiogram import Router, types
 from aiogram.filters import CommandStart
 
 from game_share_bot.core.keyboards import main_menu_kb
-from game_share_bot.core.logging import get_logger
+from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()
 logger = get_logger(__name__)

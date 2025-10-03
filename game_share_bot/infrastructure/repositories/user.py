@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from game_share_bot.infrastructure.repositories.base import BaseRepository
-from game_share_bot.models import User
+from game_share_bot.infrastructure.models import User
+from .base import BaseRepository
 
 
 class UserRepository(BaseRepository[User]):

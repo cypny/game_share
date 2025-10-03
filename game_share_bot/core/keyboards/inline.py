@@ -21,4 +21,3 @@ def catalog_kb() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="⬅️ Меню", callback_data=MenuCallback(section="main").pack())]
         ]
     )
-

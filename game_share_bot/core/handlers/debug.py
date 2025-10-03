@@ -4,7 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.filters import IsAdmin
-from game_share_bot.core.logging import get_logger
+from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()
 logger = get_logger(__name__)

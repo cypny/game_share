@@ -1,12 +1,12 @@
-from typing import List
+from game_share_bot.infrastructure.models import Game
 from game_share_bot.infrastructure.repositories import GameRepository
-from game_share_bot.models import Game
+
 
 class GameService:
     def __init__(self, repo: GameRepository):
         self.repo = repo
 
-    async def search_games(self, query: str) -> List[Game]:
+    async def search_games(self, query: str) -> list[Game]:
         games = await self.repo.get_all()
         return games
 

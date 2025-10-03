@@ -11,3 +11,5 @@ routers = [
     user_router,
     catalog_router
 ]
+
+__all__ = ['routers']

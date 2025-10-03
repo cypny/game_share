@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 
 from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.keyboards import main_menu_kb
-from game_share_bot.core.logging import get_logger
+from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()
 logger = get_logger(__name__)
