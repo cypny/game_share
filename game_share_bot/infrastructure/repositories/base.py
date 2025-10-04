@@ -3,7 +3,7 @@ from typing import TypeVar, Generic, Type, Any, List, Optional
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from game_share_bot.models import Base
+from game_share_bot.infrastructure.models.base import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
 
@@ -26,7 +26,7 @@ class BaseRepository(Generic[ModelType]):
         result = await self.session.execute(select(self.model))
 
         # note(boboboba): можно скастить через cast чтобы не ругался пайчарм, но пох
-        return result.scalars().all() # type: ignore
+        return result.scalars().all()  # type: ignore
 
     async def create(self, **data) -> ModelType:
         """Создать новую запись."""

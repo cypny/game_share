@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 
 from aiogram import Bot, Dispatcher
@@ -8,13 +7,13 @@ from dotenv import load_dotenv
 from .core.handlers import routers
 from .core.middlewares import DbSessionMiddleware
 from .infrastructure.database import init_db
-from .core.logging import setup_logging
+from .infrastructure.utils import setup_logging, get_logger
 
 
 async def main():
     # Настраиваем логирование
     setup_logging()
-    logger = logging.getLogger(__name__)
+    logger = get_logger(__name__)
 
     load_dotenv()
 
@@ -46,8 +45,6 @@ async def main():
     for router in routers:
         dp.include_router(router)
         logger.debug(f"Подключен роутер: {router.name}")
-
-    logger.info("Бот успешно запущен")
 
     try:
         await dp.start_polling(bot)

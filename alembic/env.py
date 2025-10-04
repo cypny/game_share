@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
-from game_share_bot.models.base import Base
+from game_share_bot.infrastructure.models.base import Base
 
 load_dotenv()
 

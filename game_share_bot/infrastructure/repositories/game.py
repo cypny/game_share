@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from game_share_bot.models import Game
-from game_share_bot.infrastructure.repositories.base import BaseRepository
+from game_share_bot.infrastructure.models import Game
+from .base import BaseRepository
 
 
 class GameRepository(BaseRepository[Game]):
