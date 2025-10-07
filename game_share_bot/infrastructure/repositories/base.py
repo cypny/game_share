@@ -1,12 +1,9 @@
 from typing import TypeVar, Generic, Type, Any, List, Optional
-
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from game_share_bot.infrastructure.models.base import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
-
 
 class BaseRepository(Generic[ModelType]):
     """
@@ -54,3 +51,17 @@ class BaseRepository(Generic[ModelType]):
         result = await self.session.execute(stmt)
         await self.session.commit()
         return result.rowcount > 0
+
+    async def get_by_field(self, field_name: str, value: Any) -> Optional[ModelType]:
+        """метод для поиска по любому полю."""
+        field = getattr(self.model, field_name)
+        stmt = select(self.model).where(field == value)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_all_by_field(self, field_name: str, value: Any) -> List[ModelType]:
+        """метод для поиска всех записей по полю."""
+        field = getattr(self.model, field_name)
+        stmt = select(self.model).where(field == value)
+        result = await self.session.execute(stmt)
+        return result.scalars().all()

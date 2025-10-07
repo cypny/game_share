@@ -1,7 +1,8 @@
+# game_share_bot/infrastructure/repositories/debug.py
 from sqlalchemy.ext.asyncio import AsyncSession
-from game_share_bot.infrastructure.models.game import Game
-
-
+from game_share_bot.infrastructure.models import Game, Disc, DiscStatus, RentalStatus
+from game_share_bot.infrastructure.utils import get_logger
+logger = get_logger(__name__)
 class DebugRepository:
     """
     Репозиторий для дебага и тестовых данных.
@@ -11,21 +12,17 @@ class DebugRepository:
         self.session = session
 
     async def is_database_empty(self) -> bool:
-        """
-        Проверяет, пустая ли БД (нет игр).
-        """
+        """Проверяет, пустая ли БД (нет игр)."""
         from sqlalchemy import select
         result = await self.session.execute(select(Game).limit(1))
         return result.scalar_one_or_none() is None
 
-    async def populate_test_games(self) -> None:
-        """
-        Добавляет тестовые игры если БД пустая.
-        Если не пустая - забивает хуй.
-        """
+    async def populate_test_data(self) -> None:
+        """Добавляет тестовые данные если БД пустая."""
         if not await self.is_database_empty():
             return  # БД не пустая - забиваем хуй
 
+        # Добавляем тестовые игры
         test_games = [
             Game(
                 title="The Witcher 3: Wild Hunt",
@@ -53,6 +50,34 @@ class DebugRepository:
                 cover_image_url="https://image.winudf.com/v2/image/bW9iaS5hbmRyb2FwcC5wcm9zcGVyaXR5YXBwcy5jNTExMV9zY3JlZW5fN18xNTI0MDQxMDUwXzAyMQ/screen-7.jpg?fakeurl=1&type=.jpg"
             )
         ]
-
+        logger.info(f"Добавленно {len(test_games)} игр")
         self.session.add_all(test_games)
+        await self.session.commit()
+
+        disc_statuses = [
+            DiscStatus(id=1, status="available"),
+            DiscStatus(id=2, status="rented"),
+            DiscStatus(id=3, status="maintenance")
+        ]
+
+        rental_statuses = [
+            RentalStatus(id=1, status="active"),
+            RentalStatus(id=2, status="completed"),
+            RentalStatus(id=3, status="overdue")
+        ]
+        logger.info(f"Добавленны статусы")
+        discs = []
+        disc_id = 1
+        for game in test_games:
+            for i in range(2):  # по 2 диска на игру
+                discs.append(Disc(
+                    disc_id=disc_id,
+                    game_id=game.id,
+                    status_id=1
+                ))
+                disc_id += 1
+        logger.info(f"Добавленны диски игр")
+        self.session.add_all(disc_statuses)
+        self.session.add_all(rental_statuses)
+        self.session.add_all(discs)
         await self.session.commit()

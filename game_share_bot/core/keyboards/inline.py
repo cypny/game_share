@@ -1,7 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
 from game_share_bot.core.callbacks import MenuCallback
-
 
 def main_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -13,7 +11,6 @@ def main_menu_kb() -> InlineKeyboardMarkup:
             ]
         ]
     )
-
 
 def catalog_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(

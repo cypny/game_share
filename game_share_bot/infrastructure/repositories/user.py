@@ -1,14 +1,8 @@
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from game_share_bot.infrastructure.models import User
 from .base import BaseRepository
 
-
 class UserRepository(BaseRepository[User]):
-    """
-    Репозиторий для работы с моделью Game.
-    """
     model = User
 
     def __init__(self, session: AsyncSession):
@@ -26,11 +20,7 @@ class UserRepository(BaseRepository[User]):
         )
 
     async def get_by_tg_id(self, tg_id: int) -> User | None:
-        return await self.session.scalar(
-            select(User).filter(User.tg_id == tg_id)
-        )
+        return await self.get_by_field("tg_id", tg_id)
 
     async def get_by_phone(self, phone: str) -> User | None:
-        return await self.session.scalar(
-            select(User).filter(User.phone == phone)
-        )
+        return await self.get_by_field("phone", phone)

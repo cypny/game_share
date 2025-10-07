@@ -1,5 +1,5 @@
 from sqlalchemy import String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
@@ -11,3 +11,5 @@ class Game(Base):
     title: Mapped[str] = mapped_column(String)
     description: Mapped[str] = mapped_column(Text)
     cover_image_url: Mapped[str] = mapped_column(Text, nullable=True)
+
+    discs: Mapped[list["Disc"]] = relationship(back_populates="game")

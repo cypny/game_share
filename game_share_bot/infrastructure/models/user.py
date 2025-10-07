@@ -1,10 +1,9 @@
 from sqlalchemy import String, BigInteger
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-
-# TODO
+#TODO
 class User(Base):
     __tablename__ = "users"
 
@@ -13,3 +12,5 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(50))
     phone: Mapped[str] = mapped_column(String(20), unique=True)
     role: Mapped[str] = mapped_column(String(20), default="user")
+
+    rentals: Mapped[list["Rental"]] = relationship(back_populates="user")
