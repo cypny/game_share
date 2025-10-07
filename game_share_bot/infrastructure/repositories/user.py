@@ -34,3 +34,8 @@ class UserRepository(BaseRepository[User]):
         return await self.session.scalar(
             select(User).filter(User.phone == phone)
         )
+
+    async def get_by_role(self, role: str) -> User | None:
+        return await self.session.scalar(
+            select(User).filter(User.role == role)
+        )
