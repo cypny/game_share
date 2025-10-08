@@ -2,10 +2,9 @@ from aiogram import Router, F, types
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.callbacks.game import GameCallback
-from game_share_bot.core.keyboards import catalog_kb
+from game_share_bot.core.callbacks import GameCallback
 from game_share_bot.infrastructure.repositories import GameRepository
-from game_share_bot.infrastructure.utils import format_game_short, format_game_full, get_logger
+from game_share_bot.infrastructure.utils import format_game_full, get_logger
 
 router = Router()
 logger = get_logger(__name__)
@@ -44,6 +43,7 @@ async def open_game_page(callback: CallbackQuery, callback_data: GameCallback, s
         logger.error(f"Ошибка при получении информации об игре для пользователя {user_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при загрузке информации об игре")
 
+
 @router.message()
 async def search_game(message: types.Message, session: AsyncSession):
     game_repo = GameRepository(session)
@@ -60,7 +60,3 @@ async def search_game(message: types.Message, session: AsyncSession):
             )
             return
     await message.answer("Не найдено")
-
-
-
-

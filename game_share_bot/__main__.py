@@ -1,14 +1,15 @@
 import asyncio
 import os
 
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand, BotCommandScopeDefault
 from dotenv import load_dotenv
 
-from .core.handlers import routers
-from .core.middlewares import DbSessionMiddleware
-from .infrastructure.database import init_db
-from .infrastructure.utils import setup_logging, get_logger
+from game_share_bot.core.handlers import routers
+from game_share_bot.core.middlewares import DbSessionMiddleware
+from game_share_bot.infrastructure.database import init_db
+from game_share_bot.infrastructure.utils import setup_logging, get_logger
+
 
 async def set_default_commands(bot: Bot):
     commands = [
@@ -17,8 +18,8 @@ async def set_default_commands(bot: Bot):
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
+
 async def main():
-    # Настраиваем логирование
     setup_logging()
     logger = get_logger(__name__)
 
@@ -61,7 +62,6 @@ async def main():
         logger.error(f"Бот остановлен с ошибкой: {str(e)}", exc_info=True)
     finally:
         logger.info("Бот остановлен")
-
 
 
 if __name__ == "__main__":

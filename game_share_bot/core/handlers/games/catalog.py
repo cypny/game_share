@@ -1,11 +1,11 @@
-from aiogram import Router, F, types
+from aiogram import Router
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.callbacks import CatalogCallback
+from game_share_bot.core.callbacks import CatalogCallback
 from game_share_bot.core.keyboards import catalog_kb
 from game_share_bot.infrastructure.repositories import GameRepository
-from game_share_bot.infrastructure.utils import format_game_short, format_game_full, get_logger
+from game_share_bot.infrastructure.utils import format_game_short, get_logger
 
 router = Router()
 logger = get_logger(__name__)

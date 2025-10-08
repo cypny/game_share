@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, ContentType, ReplyKeyboardRemove
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.callbacks.user import UserCallback
+from game_share_bot.core.callbacks.user import UserCallback
 from game_share_bot.core.keyboards import register_kb
 from game_share_bot.core.states import RegisterState
 from game_share_bot.infrastructure.repositories import UserRepository
@@ -11,7 +11,7 @@ from game_share_bot.infrastructure.repositories import UserRepository
 router = Router()
 
 
-@router.callback_query(UserCallback.filter(F.action=="register"))
+@router.callback_query(UserCallback.filter(F.action == "register"))  # type: ignore
 async def register(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     await callback.answer()
 

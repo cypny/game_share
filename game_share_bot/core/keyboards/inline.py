@@ -1,11 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from core.callbacks import CatalogCallback
-from core.callbacks.game import GameCallback
-from core.callbacks.user import UserCallback
-from game_share_bot.core.callbacks import MenuCallback
-from infrastructure.models import Game
+from game_share_bot.core.callbacks import CatalogCallback, GameCallback, UserCallback, MenuCallback
+from game_share_bot.infrastructure.models import Game
 
 
 def main_menu_kb() -> InlineKeyboardMarkup:
@@ -24,7 +21,7 @@ def catalog_kb(games: list[Game]) -> InlineKeyboardMarkup:
 
     for idx, game in enumerate(games, start=1):
         builder.button(
-            text=f"{idx}",
+            text=str(idx),
             callback_data=GameCallback(
                 action="open",
                 game_id=game.id,
