@@ -25,7 +25,7 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
         reply = "Каталог (все игры пока что): \n" + games_str
 
         await callback.answer()
-        await callback.message.edit_text(reply, parse_mode="HTML", reply_markup=catalog_kb(games))
+        await callback.message.edit_text(reply, parse_mode="HTML", reply_markup=catalog_kb())
         logger.info(f"Каталог успешно отправлен пользователю {user_id}")
 
     except Exception as e:
