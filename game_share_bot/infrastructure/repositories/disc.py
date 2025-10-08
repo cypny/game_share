@@ -1,8 +1,8 @@
-# game_share_bot/infrastructure/repositories/disc.py
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from game_share_bot.infrastructure.models import Disc
 from .base import BaseRepository
+
 
 class DiscRepository(BaseRepository[Disc]):
     model = Disc
@@ -19,7 +19,22 @@ class DiscRepository(BaseRepository[Disc]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_available_discs_count_by_game(self, game_id: int) -> int:
+        """Получить количество доступных дисков для игры"""
+        stmt = select(func.count(Disc.disc_id)).where(
+            Disc.game_id == game_id,
+            Disc.status_id == 1  # 1 = available
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
     async def update_disc_status(self, disc_id: int, status_id: int) -> bool:
-        """Обновить статус диска"""
-        result = await self.update(disc_id, status_id=status_id)
-        return result is not None
+        stmt = select(Disc).where(Disc.disc_id == disc_id)
+        result = await self.session.execute(stmt)
+        disc = result.scalar_one_or_none()
+
+        if disc:
+            disc.status_id = status_id
+            await self.session.commit()
+            return True
+        return False

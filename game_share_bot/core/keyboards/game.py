@@ -1,19 +1,17 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from game_share_bot.infrastructure.models.game import Game
+from game_share_bot.core.callbacks import MenuCallback
 
 
-def get_take_game_kb(games: list[Game]) -> InlineKeyboardMarkup:
-    """Клавиатура с кнопками 'Взять' для каждой игры"""
+def get_game_detail_kb(game_id: int, is_available: bool = True) -> InlineKeyboardMarkup:
+    """Клавиатура для страницы конкретной игры"""
     buttons = []
 
-    for game in games:
+    if is_available:
         buttons.append([
             InlineKeyboardButton(
-                text=f"🎮 Взять {game.title}",
-                callback_data=f"take_game_{game.id}"
+                text="🎮 Взять игру",
+                callback_data=f"take_game_{game_id}"
             )
         ])
-
-    buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_main")])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
