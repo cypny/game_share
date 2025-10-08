@@ -2,16 +2,24 @@ import asyncio
 import os
 
 from aiogram import Bot, Dispatcher
+from aiogram.types import BotCommand, BotCommandScopeDefault
 from dotenv import load_dotenv
 
-from .core.handlers import routers
-from .core.middlewares import DbSessionMiddleware
-from .infrastructure.database import init_db
-from .infrastructure.utils import setup_logging, get_logger
+from game_share_bot.core.handlers import routers
+from game_share_bot.core.middlewares import DbSessionMiddleware
+from game_share_bot.infrastructure.database import init_db
+from game_share_bot.infrastructure.utils import setup_logging, get_logger
+
+
+async def set_default_commands(bot: Bot):
+    commands = [
+        BotCommand(command="start", description="Запустить бота"),
+        BotCommand(command="help", description="Помощь"),
+    ]
+    await bot.set_my_commands(commands, BotCommandScopeDefault())
 
 
 async def main():
-    # Настраиваем логирование
     setup_logging()
     logger = get_logger(__name__)
 
@@ -41,6 +49,8 @@ async def main():
     dp = Dispatcher()
 
     dp.update.middleware(DbSessionMiddleware(session_pool=session_maker))
+
+    await set_default_commands(bot)
 
     for router in routers:
         dp.include_router(router)
