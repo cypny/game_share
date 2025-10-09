@@ -10,7 +10,6 @@ router = Router()
 logger = get_logger(__name__)
 
 
-# TODO: может убрать MenuCallback и делать просто через строки
 @router.callback_query(MenuCallback.filter())
 async def handle_menu(callback: CallbackQuery, callback_data: MenuCallback):
     user_id = callback.from_user.id
