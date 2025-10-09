@@ -1,12 +1,12 @@
-from aiogram import Router
-from aiogram.types import CallbackQuery
+from aiogram import Router, F
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from game_share_bot.core.callbacks import CatalogCallback
-from game_share_bot.core.keyboards import catalog_kb, , get_game_detail_kb
+from game_share_bot.core.keyboards import catalog_kb, get_game_detail_kb
 from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
-from game_share_bot.infrastructure.utils import format_game_short, get_logger
+from game_share_bot.infrastructure.utils import get_logger
 
 
 router = Router()
@@ -48,7 +48,7 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
 
 
 @router.message(F.text.startswith("/game_"))
-async def cmd_game(message: types.Message, session: AsyncSession):
+async def cmd_game(message: Message, session: AsyncSession):
     user_id = message.from_user.id
     logger.info(f"Пользователь {user_id} запросил информацию об игре: {message.text}")
 
