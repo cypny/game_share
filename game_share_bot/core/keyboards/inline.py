@@ -15,7 +15,6 @@ def main_menu_kb() -> InlineKeyboardMarkup:
         ]
     )
 
-
 def catalog_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[

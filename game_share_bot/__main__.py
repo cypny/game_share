@@ -39,7 +39,7 @@ async def main():
     logger.info("Начало инициализации бота...")
 
     try:
-        engine, session_maker = init_db(CONN_STRING_ASYNC)
+        engine, session_maker = await init_db(CONN_STRING_ASYNC)
         logger.info("База данных успешно инициализирована")
     except Exception as e:
         logger.error(f"Ошибка инициализации базы данных: {str(e)}", exc_info=True)
