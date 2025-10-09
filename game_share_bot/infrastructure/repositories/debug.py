@@ -1,8 +1,11 @@
-# game_share_bot/infrastructure/repositories/debug.py
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from game_share_bot.infrastructure.models import Game, Disc, DiscStatus, RentalStatus
 from game_share_bot.infrastructure.utils import get_logger
+
 logger = get_logger(__name__)
+
+
 class DebugRepository:
     """
     Репозиторий для дебага и тестовых данных.
@@ -20,7 +23,7 @@ class DebugRepository:
     async def populate_test_data(self) -> None:
         """Добавляет тестовые данные если БД пустая."""
         if not await self.is_database_empty():
-            return  # БД не пустая - забиваем хуй
+            return
 
         # Добавляем тестовые игры
         test_games = [
@@ -50,7 +53,7 @@ class DebugRepository:
                 cover_image_url="https://image.winudf.com/v2/image/bW9iaS5hbmRyb2FwcC5wcm9zcGVyaXR5YXBwcy5jNTExMV9zY3JlZW5fN18xNTI0MDQxMDUwXzAyMQ/screen-7.jpg?fakeurl=1&type=.jpg"
             )
         ]
-        logger.info(f"Добавленно {len(test_games)} игр")
+        logger.info(f"Добавлено {len(test_games)} игр")
         self.session.add_all(test_games)
         await self.session.commit()
 
@@ -65,7 +68,7 @@ class DebugRepository:
             RentalStatus(id=2, status="completed"),
             RentalStatus(id=3, status="overdue")
         ]
-        logger.info(f"Добавленны статусы")
+        logger.info(f"Добавлены статусы")
         discs = []
         disc_id = 1
         for game in test_games:
@@ -76,7 +79,7 @@ class DebugRepository:
                     status_id=1
                 ))
                 disc_id += 1
-        logger.info(f"Добавленны диски игр")
+        logger.info(f"Добавлены диски игр")
         self.session.add_all(disc_statuses)
         self.session.add_all(rental_statuses)
         self.session.add_all(discs)

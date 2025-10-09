@@ -1,10 +1,12 @@
-# game_share_bot/infrastructure/repositories/base.py
-from typing import TypeVar, Generic, Type, Any, List, Optional
+from typing import TypeVar, Generic, Type, Any
+
 from sqlalchemy import select, update, delete, inspect
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from game_share_bot.infrastructure.models.base import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
+
 
 class BaseRepository(Generic[ModelType]):
     """
@@ -19,14 +21,14 @@ class BaseRepository(Generic[ModelType]):
         """Получить имя первичного ключа модели."""
         return inspect(self.model).primary_key[0].name
 
-    async def get_by_id(self, model_id: Any) -> Optional[ModelType]:
+    async def get_by_id(self, model_id: Any) -> ModelType | None:
         """Получить запись по ID."""
         pk_name = self._get_primary_key_name()
         return await self.session.scalar(
             select(self.model).where(getattr(self.model, pk_name) == model_id)
         )
 
-    async def get_all(self) -> List[ModelType]:
+    async def get_all(self) -> list[ModelType]:
         """Получить все записи."""
         result = await self.session.execute(select(self.model))
         return result.scalars().all()
@@ -39,7 +41,7 @@ class BaseRepository(Generic[ModelType]):
         await self.session.refresh(instance)
         return instance
 
-    async def update(self, model_id: Any, **data) -> Optional[ModelType]:
+    async def update(self, model_id: Any, **data) -> ModelType | None:
         """Обновить запись по ID."""
         pk_name = self._get_primary_key_name()
         stmt = (
@@ -60,14 +62,14 @@ class BaseRepository(Generic[ModelType]):
         await self.session.commit()
         return result.rowcount > 0
 
-    async def get_by_field(self, field_name: str, value: Any) -> Optional[ModelType]:
+    async def get_by_field(self, field_name: str, value: Any) -> ModelType | None:
         """метод для поиска по любому полю."""
         field = getattr(self.model, field_name)
         stmt = select(self.model).where(field == value)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_all_by_field(self, field_name: str, value: Any) -> List[ModelType]:
+    async def get_all_by_field(self, field_name: str, value: Any) -> list[ModelType]:
         """метод для поиска всех записей по полю."""
         field = getattr(self.model, field_name)
         stmt = select(self.model).where(field == value)

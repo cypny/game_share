@@ -2,9 +2,10 @@ from aiogram import Router, F, types
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from game_share_bot.core.keyboards import catalog_kb,get_game_detail_kb
-from game_share_bot.infrastructure.repositories import GameRepository,DiscRepository, RentalRepository, UserRepository
+from game_share_bot.core.keyboards import catalog_kb, get_game_detail_kb
+from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
 from game_share_bot.infrastructure.utils import get_logger
+
 router = Router()
 logger = get_logger(__name__)
 
@@ -40,6 +41,7 @@ async def catalog(callback: CallbackQuery, session: AsyncSession):
     except Exception as e:
         logger.error(f"Ошибка при получении каталога для пользователя {user_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при загрузке каталога")
+
 
 @router.message(F.text.startswith("/game_"))
 async def cmd_game(message: types.Message, session: AsyncSession):
