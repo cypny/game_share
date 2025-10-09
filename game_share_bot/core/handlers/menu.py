@@ -1,5 +1,6 @@
-from aiogram import Router
-from aiogram.types import CallbackQuery
+from aiogram import Router, F
+from aiogram.filters import Command
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, Message
 
 from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.keyboards import main_menu_kb
@@ -25,3 +26,22 @@ async def handle_menu(callback: CallbackQuery, callback_data: MenuCallback):
     elif callback_data.section == "main":
         await callback.message.edit_text("Главное меню", reply_markup=main_menu_kb())
         logger.debug(f"Главное меню отправлено пользователю {user_id}")
+
+
+@router.callback_query(F.data == "help")
+@router.message(Command("help"))
+async def handle_help(callback: CallbackQuery | Message):
+    kwargs = dict(
+        text="@cynpy_the_best",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="⬅️ Меню", callback_data=MenuCallback(section="main").pack())]
+            ]
+        )
+    )
+
+    if isinstance(callback, Message):
+        await callback.answer(**kwargs)
+    elif isinstance(callback, CallbackQuery):
+        await callback.answer()
+        await callback.message.edit_text(**kwargs)

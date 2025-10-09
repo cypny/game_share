@@ -1,17 +1,20 @@
-from aiogram import Router, F, types
+from aiogram import Router
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from game_share_bot.core.keyboards import catalog_kb, get_game_detail_kb
+
+from game_share_bot.core.callbacks import CatalogCallback
+from game_share_bot.core.keyboards import catalog_kb, , get_game_detail_kb
 from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
-from game_share_bot.infrastructure.utils import get_logger
+from game_share_bot.infrastructure.utils import format_game_short, get_logger
+
 
 router = Router()
 logger = get_logger(__name__)
 
 
-@router.callback_query(F.data == "catalog")
-async def catalog(callback: CallbackQuery, session: AsyncSession):
+@router.callback_query(CatalogCallback.filter())
+async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, session: AsyncSession):
     user_id = callback.from_user.id
     logger.info(f"Пользователь {user_id} открыл каталог")
 
@@ -41,6 +44,7 @@ async def catalog(callback: CallbackQuery, session: AsyncSession):
     except Exception as e:
         logger.error(f"Ошибка при получении каталога для пользователя {user_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при загрузке каталога")
+
 
 
 @router.message(F.text.startswith("/game_"))
@@ -203,3 +207,4 @@ async def take_game(callback: CallbackQuery, session: AsyncSession):
     except Exception as e:
         logger.error(f"Ошибка при взятии игры {game_id} пользователем {user_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при взятии игры")
+

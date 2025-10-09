@@ -24,3 +24,6 @@ class UserRepository(BaseRepository[User]):
 
     async def get_by_phone(self, phone: str) -> User | None:
         return await self.get_by_field("phone", phone)
+
+    async def get_by_role(self, role: str) -> User | None:
+        return await self.get_by_field("role", role)
