@@ -1,9 +1,10 @@
-from aiogram import Router, F, types
+from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ContentType, ReplyKeyboardRemove
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from game_share_bot.core.handlers.menu.main import main_menu
 from game_share_bot.core.keyboards import main_menu_kb, register_kb
 from game_share_bot.core.states import RegisterState
 from game_share_bot.infrastructure.repositories import UserRepository
@@ -14,12 +15,12 @@ logger = get_logger(__name__)
 
 
 @router.message(CommandStart())
-async def cmd_start(message: types.Message, session: AsyncSession, state: FSMContext):
+async def cmd_start(message: Message, session: AsyncSession, state: FSMContext):
     logger.info(f"Команда /start от пользователя {message.from_user.id} (@{message.from_user.username})")
 
     if await UserRepository(session).get_by_tg_id(message.from_user.id):
-        await message.answer("Главное меню", reply_markup=main_menu_kb())
         logger.debug(f"Пользователь {message.from_user.id} уже зарегистрирован - отправлено меню")
+        await main_menu(message)
     else:
         await message.answer("Пожалуйста, поделитесь номером телефона для регистрации", reply_markup=register_kb())
         await state.set_state(RegisterState.waiting_for_phone)
