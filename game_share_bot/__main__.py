@@ -13,8 +13,9 @@ from game_share_bot.infrastructure.utils import setup_logging, get_logger
 
 async def set_default_commands(bot: Bot):
     commands = [
-        BotCommand(command="start", description="Запустить бота"),
+        BotCommand(command="start", description="Перезапуск бота"),
         BotCommand(command="help", description="Помощь"),
+        BotCommand(command="menu", description="Главное меню")
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
