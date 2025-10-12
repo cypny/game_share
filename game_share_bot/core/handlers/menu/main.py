@@ -1,5 +1,6 @@
 from aiogram import Router, F
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from game_share_bot.core.callbacks import MenuCallback
@@ -14,7 +15,8 @@ logger = get_logger(__name__)
 
 @router.message(Command("menu"))
 @router.callback_query(MenuCallback.filter(F.section == "main"))
-async def main_menu(event: Message | CallbackQuery):
+async def main_menu(event: Message | CallbackQuery, state: FSMContext):
+    await state.clear()
     text = "Главное меню"
     markup = main_menu_kb()
     await respond_user(event, text, markup)

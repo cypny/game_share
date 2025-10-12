@@ -2,6 +2,7 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from game_share_bot.core.callbacks import CatalogCallback, AdminCallback, MenuCallback
+from game_share_bot.core.callbacks.confirmation import ConfirmationCallback
 
 
 def _return_button(callback: CallbackData) -> InlineKeyboardButton:
@@ -29,10 +30,10 @@ def main_menu_kb() -> InlineKeyboardMarkup:
 def admin_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            # [
-            #     InlineKeyboardButton(text="Добавить игру", callback_data=AdminCallback(action='add_game').pack()),
-            #     InlineKeyboardButton(text="Удалить игру", callback_data=AdminCallback(action='delete_game').pack())
-            # ],
+            [
+                InlineKeyboardButton(text="Добавить игру", callback_data=AdminCallback(action='add_game').pack()),
+                InlineKeyboardButton(text="Удалить игру", callback_data=AdminCallback(action='delete_game').pack())
+            ],
             # [
             #     InlineKeyboardButton(text="Добавить диск", callback_data=AdminCallback(action='add_disk').pack()),
             #     InlineKeyboardButton(text="Удалить диск", callback_data=AdminCallback(action='delete_disk').pack())
@@ -48,4 +49,24 @@ def admin_kb() -> InlineKeyboardMarkup:
             ]
         ]
 
+    )
+
+
+def confirmation_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Подтвердить", callback_data=ConfirmationCallback(is_confirmed=True).pack())],
+            [InlineKeyboardButton(text="❌ Отмена", callback_data=ConfirmationCallback(is_confirmed=False).pack())]
+        ]
+    )
+
+
+def add_game_image_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                _return_button(AdminCallback(action='return_to_main')),
+                InlineKeyboardButton(text="Пропустить", callback_data=AdminCallback(action='skip_image').pack())
+            ]
+        ]
     )

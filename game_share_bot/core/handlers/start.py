@@ -16,6 +16,7 @@ logger = get_logger(__name__)
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, session: AsyncSession, state: FSMContext):
+    await state.clear()
     logger.info(f"Команда /start от пользователя {message.from_user.id} (@{message.from_user.username})")
 
     if await UserRepository(session).get_by_tg_id(message.from_user.id):
