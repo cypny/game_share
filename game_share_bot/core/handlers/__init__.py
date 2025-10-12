@@ -1,3 +1,4 @@
+from .admin import router as admin_router
 from .debug import router as debug_router
 from .games.catalog import router as catalog_router
 from .games.game import router as game_router
@@ -5,11 +6,12 @@ from .menu.main import router as main_menu_router
 from .start import router as start_router
 
 routers = [
+    admin_router,
     debug_router,
     main_menu_router,
     start_router,
     catalog_router,
-    game_router,
+    game_router
 ]
 
 __all__ = ['routers']

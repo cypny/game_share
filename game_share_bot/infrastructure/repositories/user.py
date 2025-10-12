@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from game_share_bot.infrastructure.models import User
 from .base import BaseRepository
+
 
 class UserRepository(BaseRepository[User]):
     model = User
@@ -27,3 +29,12 @@ class UserRepository(BaseRepository[User]):
 
     async def get_by_role(self, role: str) -> User | None:
         return await self.get_by_field("role", role)
+
+    async def make_admin(self, tg_id: int) -> bool:
+        user = await self.get_by_tg_id(tg_id)
+        if user is None:
+            return False
+
+        user.role = "admin"
+        await self.session.commit()
+        return True
