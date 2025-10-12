@@ -27,7 +27,7 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
         # Форматируем игры в нужном стиле
         games_list = []
         for game in games:
-            game_text = f"🎮 {game.title}\n\n{game.description}\n\n<code>/game_{game.id}</code>"
+            game_text = f"🎮 {game.title}\n\n{game.description}\n\n/game_{game.id}"
             games_list.append(game_text)
 
         games_str = "\n\n---\n\n".join(games_list)
@@ -95,7 +95,7 @@ async def cmd_game(message: Message, session: AsyncSession):
             f"🎮 <b>{game.title}</b>\n\n"
             f"{game.description}\n\n"
             f"{availability_text}\n\n"
-            f"<code>/game_{game.id}</code>"
+            f"/game_{game.id}"
         )
 
         # Отправляем фото с описанием и соответствующей кнопкой

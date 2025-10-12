@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import AdminCallback, ConfirmationCallback
 from game_share_bot.core.filters import IsAdmin
+from game_share_bot.core.handlers.utils import cancel_admin_action
 from game_share_bot.core.keyboards import confirmation_kb, add_game_image_kb, return_to_admin_panel_kb
 from game_share_bot.core.states import AddGameState
 from game_share_bot.domain.enums import AdminAction
@@ -71,7 +72,7 @@ async def skip_image_and_request_confirmation(callback: CallbackQuery, state: FS
 
 
 @router.callback_query(AddGameState.waiting_for_confirmation,
-                       ConfirmationCallback.filter(F.is_confirmed),  # type: ignore
+                       ConfirmationCallback.filter_confirmed(),  # type: ignore
                        IsAdmin())
 async def add_game(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     data = await state.get_data()
@@ -88,9 +89,6 @@ async def add_game(callback: CallbackQuery, session: AsyncSession, state: FSMCon
 
 
 @router.callback_query(AddGameState.waiting_for_confirmation,
-                       ConfirmationCallback.filter(F.is_confirmed == False))  # type: ignore
+                       ConfirmationCallback.filter_canceled())  # type: ignore
 async def cancel_game_add(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.answer()
-    await callback.message.delete()
-    await callback.message.answer("Действие отменено", reply_markup=return_to_admin_panel_kb())
+    await cancel_admin_action(callback, state)
