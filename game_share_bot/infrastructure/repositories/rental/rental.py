@@ -1,8 +1,11 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from datetime import datetime, timedelta
-from game_share_bot.infrastructure.models import Rental,Disc
-from .base import BaseRepository
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from game_share_bot.infrastructure.models import Rental, Disc
+from game_share_bot.infrastructure.repositories.base import BaseRepository
+
 
 class RentalRepository(BaseRepository[Rental]):
     model = Rental

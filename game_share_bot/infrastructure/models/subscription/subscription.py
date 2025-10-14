@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Boolean, ForeignKey, Integer, func
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from .base import Base
+from sqlalchemy import DateTime, Boolean, ForeignKey, Integer, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from game_share_bot.infrastructure.models.base import Base
 
 
 class Subscription(Base):

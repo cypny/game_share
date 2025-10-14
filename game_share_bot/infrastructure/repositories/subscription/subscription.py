@@ -1,12 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from datetime import datetime, timedelta
-
 from sqlalchemy.orm import joinedload
 
 from game_share_bot.infrastructure.models import Subscription
-from .base import BaseRepository
 from game_share_bot.infrastructure.models import User
+from game_share_bot.infrastructure.repositories.base import BaseRepository
 
 
 class SubscriptionRepository(BaseRepository[Subscription]):

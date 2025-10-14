@@ -1,9 +1,10 @@
 from .base import BaseRepository
-from .game import GameRepository
-from .user import UserRepository
-from .disc import DiscRepository
-from .rental import RentalRepository
 from .debug import DebugRepository
+from .game import GameRepository
+from .rental.disc import DiscRepository
+from .rental.rental import RentalRepository
+from .subscription.subscription import SubscriptionRepository
+from .user import UserRepository
 
 __all__ = [
     'BaseRepository',
@@ -11,5 +12,6 @@ __all__ = [
     'UserRepository', 
     'DiscRepository',
     'RentalRepository',
-    'DebugRepository'
+    'DebugRepository',
+    'SubscriptionRepository'
 ]

@@ -1,10 +1,11 @@
 import uuid
-from sqlalchemy import BigInteger, Numeric, Text, String
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Optional
 
-from .base import Base
+from sqlalchemy import BigInteger, Numeric, Text, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from game_share_bot.infrastructure.models.base import Base
 
 
 class SubscriptionPlan(Base):

@@ -1,7 +1,8 @@
 from sqlalchemy import BigInteger, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base
+from game_share_bot.infrastructure.models.base import Base
+
 
 class Disc(Base):
     __tablename__ = "general_discs"

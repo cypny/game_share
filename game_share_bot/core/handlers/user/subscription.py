@@ -9,7 +9,7 @@ from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.keyboards.inline import personal_cabinet_kb, subscription_actions_kb
 from game_share_bot.infrastructure.repositories import UserRepository
 from game_share_bot.infrastructure.utils import get_logger
-from game_share_bot.infrastructure.repositories.subscription import SubscriptionRepository
+from game_share_bot.infrastructure.repositories import SubscriptionRepository
 from game_share_bot.infrastructure.utils.formatting import format_subscription
 
 router = Router()

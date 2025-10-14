@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import BigInteger, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base
+from game_share_bot.infrastructure.models.base import Base
 
 
 class Rental(Base):

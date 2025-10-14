@@ -2,7 +2,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.infrastructure.models import Disc
-from .base import BaseRepository
+from game_share_bot.infrastructure.repositories.base import BaseRepository
 
 
 class DiscRepository(BaseRepository[Disc]):

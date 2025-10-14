@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from game_share_bot.infrastructure.models import Game
-from game_share_bot.infrastructure.models.subscription import Subscription
+from game_share_bot.infrastructure.models import Subscription
 
 
 def format_game_short(game: Game) -> str:

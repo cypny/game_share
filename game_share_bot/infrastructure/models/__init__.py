@@ -1,12 +1,12 @@
+from .rental.disc import Disc
+from .rental.disc_status import DiscStatus
+from .rental.rental_status import RentalStatus
+from .subscription.subscription import Subscription
+from .subscription.subscription_plan import SubscriptionPlan
 from .base import Base
 from .game import Game
-from .subscription_plan import SubscriptionPlan
+from .rental.rental import Rental
 from .user import User
-from .disc import Disc
-from .disc_status import DiscStatus
-from .rental import Rental
-from .rental_status import RentalStatus
-from .subscription import Subscription
 
 __all__ = [
     'Base',
