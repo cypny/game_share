@@ -22,8 +22,19 @@ def main_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="🎮 Каталог", callback_data=CatalogCallback().pack())],
-            [InlineKeyboardButton(text="📦 Подписки", callback_data=MenuCallback(section='subs').pack())],
+            [InlineKeyboardButton(text="👤 Личный кабинет", callback_data=MenuCallback(section='personal').pack())],
             [InlineKeyboardButton(text="🆘 Поддержка", callback_data="help")],
+        ]
+    )
+
+
+def personal_cabinet_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🎮 Арендованные диски", callback_data=MenuCallback(section='rented_disks').pack())],
+            [InlineKeyboardButton(text="📦 Управление подпиской", callback_data=MenuCallback(section='manage_subscription').pack())],
+            [InlineKeyboardButton(text="📋 Моя очередь", callback_data=MenuCallback(section='my_queue').pack())],
+            [InlineKeyboardButton(text="⬅️ Назад", callback_data=MenuCallback(section='main').pack())]
         ]
     )
 
@@ -37,22 +48,11 @@ def admin_kb() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="Удалить игру",
                                      callback_data=AdminCallback(action=AdminAction.DELETE_GAME).pack())
             ],
-            # [
-            #     InlineKeyboardButton(text="Добавить диск", callback_data=AdminCallback(action='add_disk').pack()),
-            #     InlineKeyboardButton(text="Удалить диск", callback_data=AdminCallback(action='delete_disk').pack())
-            # ],
-            # [
-            #     InlineKeyboardButton(text="Добавить категорию",
-            #                          callback_data=AdminCallback(action='add_category').pack()),
-            #     InlineKeyboardButton(text="Удалить категорию",
-            #                          callback_data=AdminCallback(action='delete_category').pack())
-            # ],
             [
                 InlineKeyboardButton(text="Выдать админку",
                                      callback_data=AdminCallback(action=AdminAction.APPOINT).pack())
             ]
         ]
-
     )
 
 

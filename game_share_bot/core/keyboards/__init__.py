@@ -1,4 +1,4 @@
-from .inline import main_menu_kb, return_kb, admin_kb, confirmation_kb, add_game_image_kb, return_to_admin_panel_kb
+from .inline import main_menu_kb, return_kb, admin_kb, confirmation_kb, add_game_image_kb, return_to_admin_panel_kb, personal_cabinet_kb
 from .reply import register_kb
 from .game import get_game_detail_kb
 
@@ -10,5 +10,6 @@ __all__ = [
     'admin_kb',
     'confirmation_kb',
     'add_game_image_kb',
-    'return_to_admin_panel_kb'
+    'return_to_admin_panel_kb',
+    'personal_cabinet_kb'
 ]

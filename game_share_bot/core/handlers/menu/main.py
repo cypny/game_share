@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
+from aiogram.types import CallbackQuery, Message
 
 from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.handlers.utils import respond_user

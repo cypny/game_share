@@ -6,6 +6,7 @@ from .debug import router as debug_router
 from .games.catalog import router as catalog_router
 from .games.game import router as game_router
 from .menu.main import router as main_menu_router
+from .menu.personal_cabinet import router as personal_cabinet_router  # <-- Добавляем импорт
 from .start import router as start_router
 
 routers = [
@@ -15,6 +16,7 @@ routers = [
     admin_delete_game_router,
     debug_router,
     main_menu_router,
+    personal_cabinet_router,
     start_router,
     catalog_router,
     game_router,
