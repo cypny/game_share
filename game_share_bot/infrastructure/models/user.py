@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-#TODO
+
 class User(Base):
     __tablename__ = "users"
 
@@ -14,3 +14,4 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default="user")
 
     rentals: Mapped[list["Rental"]] = relationship(back_populates="user")
+    subscriptions: Mapped["Subscription"] = relationship(back_populates="user")

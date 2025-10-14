@@ -11,7 +11,7 @@ class RentalRepository(BaseRepository[Rental]):
         super().__init__(session)
 
     async def create_rental(self, user_id: int, disc_id: int) -> Rental:
-        """Создать запись о аренде"""
+        """Создать запись об аренде"""
         rental_data = {
             "user_id": user_id,
             "disc_id": disc_id,
@@ -21,6 +21,7 @@ class RentalRepository(BaseRepository[Rental]):
             "actual_end_date": None
         }
         return await self.create(**rental_data)
+
     async def get_active_rental_by_user_and_game(self, user_id: int, game_id: int) -> Rental | None:
         """Получить активную аренду пользователя для указанной игры"""
         stmt = (

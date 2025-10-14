@@ -38,3 +38,4 @@ class UserRepository(BaseRepository[User]):
         user.role = "admin"
         await self.session.commit()
         return True
+

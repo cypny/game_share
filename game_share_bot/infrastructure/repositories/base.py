@@ -62,10 +62,13 @@ class BaseRepository(Generic[ModelType]):
         await self.session.commit()
         return result.rowcount > 0
 
-    async def get_by_field(self, field_name: str, value: Any) -> ModelType | None:
+    async def get_by_field(self, field_name: str, value: Any, options = None) -> ModelType | None:
         """метод для поиска по любому полю."""
+        options = options or []
         field = getattr(self.model, field_name)
-        stmt = select(self.model).where(field == value)
+        stmt = (select(self.model)
+                .options(*options)
+                .where(field == value))
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -75,3 +78,4 @@ class BaseRepository(Generic[ModelType]):
         stmt = select(self.model).where(field == value)
         result = await self.session.execute(stmt)
         return result.scalars().all()
+
