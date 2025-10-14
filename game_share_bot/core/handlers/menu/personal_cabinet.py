@@ -14,6 +14,7 @@ logger = get_logger(__name__)
 
 @router.callback_query(MenuCallback.filter(F.section == "personal"))
 async def personal_cabinet(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
+    """Обрабатывает переход в личный кабинет и показывает основную информацию"""
     await state.clear()
     user_id = callback.from_user.id
     logger.info(f"Пользователь {user_id} открыл личный кабинет")
@@ -38,19 +39,13 @@ async def personal_cabinet(callback: CallbackQuery, session: AsyncSession, state
         await callback.answer("❌ Ошибка при загрузке личного кабинета")
 
 
-@router.callback_query(MenuCallback.filter(F.section == "rented_disks"))
-async def rented_disks(callback: CallbackQuery):
-    """Обработчик кнопки 'Арендованные диски'"""
-    await callback.answer("📀 Функционал 'Арендованные диски' в разработке")
-
-
 @router.callback_query(MenuCallback.filter(F.section == "manage_subscription"))
 async def manage_subscription(callback: CallbackQuery):
-    """Обработчик кнопки 'Управление подпиской'"""
+    """Обрабатывает кнопку управления подпиской"""
     await callback.answer("📦 Функционал 'Управление подпиской' в разработке")
 
 
 @router.callback_query(MenuCallback.filter(F.section == "my_queue"))
 async def my_queue(callback: CallbackQuery):
-    """Обработчик кнопки 'Моя очередь'"""
+    """Обрабатывает кнопку просмотра очереди"""
     await callback.answer("📋 Функционал 'Моя очередь' в разработке")
