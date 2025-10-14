@@ -1,6 +1,9 @@
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from game_share_bot.core.callbacks.subscription import SubscriptionCallback
+from game_share_bot.domain.enums.subscription.action import SubscriptionAction
+from game_share_bot.domain.enums.subscription.type import SubscriptionType
 from game_share_bot.core.callbacks import CatalogCallback, AdminCallback, MenuCallback
 from game_share_bot.core.callbacks.confirmation import ConfirmationCallback
 from game_share_bot.domain.enums import AdminAction
@@ -32,7 +35,9 @@ def personal_cabinet_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="🎮 Арендованные диски", callback_data=MenuCallback(section='rented_disks').pack())],
-            [InlineKeyboardButton(text="📦 Управление подпиской", callback_data=MenuCallback(section='manage_subscription').pack())],
+            [InlineKeyboardButton(text="📦 Управление подпиской", callback_data=SubscriptionCallback(
+                action=SubscriptionAction.INFO
+            ).pack())],
             [InlineKeyboardButton(text="📋 Моя очередь", callback_data=MenuCallback(section='my_queue').pack())],
             [InlineKeyboardButton(text="⬅️ Назад", callback_data=MenuCallback(section='main').pack())]
         ]
@@ -79,3 +84,28 @@ def add_game_image_kb() -> InlineKeyboardMarkup:
 
 def return_to_admin_panel_kb() -> InlineKeyboardMarkup:
     return return_kb(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL))
+
+
+def subscription_actions_kb() -> InlineKeyboardMarkup:
+    default_subscription_button = InlineKeyboardButton(
+        text="Купить подписку",
+        callback_data=SubscriptionCallback(
+            action=SubscriptionAction.SELECT_DURATION,
+            subscription_type=SubscriptionType.DEFAULT
+        ).pack()
+    )
+
+    premium_subscription_button = InlineKeyboardButton(
+        text="Купить премиум подписку",
+        callback_data=SubscriptionCallback(
+            action=SubscriptionAction.SELECT_DURATION,
+            subscription_type=SubscriptionType.PREMIUM
+        ).pack()
+    )
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [default_subscription_button],
+            [premium_subscription_button],
+            [_return_button(MenuCallback(section ="personal"))]
+        ]
+    )

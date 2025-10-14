@@ -8,6 +8,7 @@ from .games.game import router as game_router
 from .menu.main import router as main_menu_router
 from .menu.personal_cabinet import router as personal_cabinet_router  # <-- Добавляем импорт
 from .start import router as start_router
+from .user.subscription import router as user_subscription_router
 
 routers = [
     admin_panel_router,
@@ -20,6 +21,7 @@ routers = [
     start_router,
     catalog_router,
     game_router,
+    user_subscription_router,
 ]
 
 __all__ = ['routers']

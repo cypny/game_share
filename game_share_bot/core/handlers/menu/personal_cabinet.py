@@ -1,10 +1,10 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import MenuCallback
-from game_share_bot.core.keyboards.inline import personal_cabinet_kb
+from game_share_bot.core.keyboards.inline import personal_cabinet_kb, subscription_actions_kb
 from game_share_bot.infrastructure.repositories import UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 
@@ -43,11 +43,6 @@ async def rented_disks(callback: CallbackQuery):
     """Обработчик кнопки 'Арендованные диски'"""
     await callback.answer("📀 Функционал 'Арендованные диски' в разработке")
 
-
-@router.callback_query(MenuCallback.filter(F.section == "manage_subscription"))
-async def manage_subscription(callback: CallbackQuery):
-    """Обработчик кнопки 'Управление подпиской'"""
-    await callback.answer("📦 Функционал 'Управление подпиской' в разработке")
 
 
 @router.callback_query(MenuCallback.filter(F.section == "my_queue"))
