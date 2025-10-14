@@ -9,8 +9,11 @@ def format_game_short(game: Game) -> str:
     return text
 
 def format_game_full(game: Game) -> str:
-    text = f"🎮 <b>{game.title}</b>\n\n"
-    text += f"{game.description}\n\n"
+    return format_game_text_full(game.title, game.description)
+
+def format_game_text_full(title: str, description: str) -> str:
+    text = f"🎮 <b>{title}</b>\n\n"
+    text += f"{description}\n\n"
     return text
 
 def format_games_list(games: list[Game]) -> str:

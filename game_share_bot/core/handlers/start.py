@@ -16,11 +16,12 @@ logger = get_logger(__name__)
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, session: AsyncSession, state: FSMContext):
+    await state.clear()
     logger.info(f"Команда /start от пользователя {message.from_user.id} (@{message.from_user.username})")
 
     if await UserRepository(session).get_by_tg_id(message.from_user.id):
         logger.debug(f"Пользователь {message.from_user.id} уже зарегистрирован - отправлено меню")
-        await main_menu(message)
+        await main_menu(message, state)
     else:
         await message.answer("Пожалуйста, поделитесь номером телефона для регистрации", reply_markup=register_kb())
         await state.set_state(RegisterState.waiting_for_phone)

@@ -3,8 +3,8 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-from game_share_bot.core.callbacks import CatalogCallback
-from game_share_bot.core.keyboards import catalog_kb, get_game_detail_kb
+from game_share_bot.core.callbacks import CatalogCallback, MenuCallback
+from game_share_bot.core.keyboards import return_kb, get_game_detail_kb
 from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 
@@ -27,7 +27,7 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
         # Форматируем игры в нужном стиле
         games_list = []
         for game in games:
-            game_text = f"🎮 {game.title}\n\n{game.description}\n\n<code>/game_{game.id}</code>"
+            game_text = f"🎮 {game.title}\n\n{game.description}\n\n/game_{game.id}"
             games_list.append(game_text)
 
         games_str = "\n\n---\n\n".join(games_list)
@@ -37,7 +37,7 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
         await callback.message.edit_text(
             reply,
             parse_mode="HTML",
-            reply_markup=catalog_kb()  # Используем старую работающую клавиатуру
+            reply_markup=return_kb(MenuCallback(section="main"))  # Используем старую работающую клавиатуру
         )
         logger.info(f"Каталог успешно отправлен пользователю {user_id}")
 
@@ -95,7 +95,7 @@ async def cmd_game(message: Message, session: AsyncSession):
             f"🎮 <b>{game.title}</b>\n\n"
             f"{game.description}\n\n"
             f"{availability_text}\n\n"
-            f"<code>/game_{game.id}</code>"
+            f"/game_{game.id}"
         )
 
         # Отправляем фото с описанием и соответствующей кнопкой
