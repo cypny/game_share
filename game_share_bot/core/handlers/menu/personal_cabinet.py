@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import MenuCallback
-from game_share_bot.core.keyboards.inline import personal_cabinet_kb, subscription_actions_kb
+from game_share_bot.core.keyboards.inline import personal_cabinet_kb
 from game_share_bot.infrastructure.repositories import UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 

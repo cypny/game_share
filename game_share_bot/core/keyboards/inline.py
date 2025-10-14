@@ -1,24 +1,11 @@
-from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from game_share_bot.core.callbacks.subscription import SubscriptionCallback
-from game_share_bot.domain.enums.subscription.action import SubscriptionAction
-from game_share_bot.domain.enums.subscription.type import SubscriptionType
+from game_share_bot.core.keyboards.buttons import _return_button, return_kb
 from game_share_bot.core.callbacks import CatalogCallback, AdminCallback, MenuCallback
 from game_share_bot.core.callbacks.confirmation import ConfirmationCallback
+from game_share_bot.core.callbacks.subscription import SubscriptionCallback
 from game_share_bot.domain.enums import AdminAction
-
-
-def _return_button(callback: CallbackData) -> InlineKeyboardButton:
-    return InlineKeyboardButton(text="⬅️ Назад", callback_data=callback.pack())
-
-
-def return_kb(callback: CallbackData) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [_return_button(callback)]
-        ]
-    )
+from game_share_bot.domain.enums.subscription.action import SubscriptionAction
 
 
 def main_menu_kb() -> InlineKeyboardMarkup:
@@ -84,28 +71,3 @@ def add_game_image_kb() -> InlineKeyboardMarkup:
 
 def return_to_admin_panel_kb() -> InlineKeyboardMarkup:
     return return_kb(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL))
-
-
-def subscription_actions_kb() -> InlineKeyboardMarkup:
-    default_subscription_button = InlineKeyboardButton(
-        text="Купить подписку",
-        callback_data=SubscriptionCallback(
-            action=SubscriptionAction.SELECT_DURATION,
-            subscription_type=SubscriptionType.DEFAULT
-        ).pack()
-    )
-
-    premium_subscription_button = InlineKeyboardButton(
-        text="Купить премиум подписку",
-        callback_data=SubscriptionCallback(
-            action=SubscriptionAction.SELECT_DURATION,
-            subscription_type=SubscriptionType.PREMIUM
-        ).pack()
-    )
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [default_subscription_button],
-            [premium_subscription_button],
-            [_return_button(MenuCallback(section ="personal"))]
-        ]
-    )
