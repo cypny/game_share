@@ -2,7 +2,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.infrastructure.models import Disc
-from game_share_bot.domain.enums import DiscStatus
+from game_share_bot.domain.enums.disc_status import DiscStatus
 from .base import BaseRepository
 
 

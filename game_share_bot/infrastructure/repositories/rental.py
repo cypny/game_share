@@ -4,7 +4,8 @@ from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta
 
 from game_share_bot.infrastructure.models import Rental, Disc, User, Game
-from game_share_bot.domain.enums import RentalStatus, DiscStatus
+from game_share_bot.domain.enums.rental_status import RentalStatus
+from game_share_bot.domain.enums.disc_status import DiscStatus
 from .base import BaseRepository
 
 

@@ -2,7 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.infrastructure.models import Game, Disc, DiscStatus, RentalStatus
 from game_share_bot.infrastructure.utils import get_logger
-
+from game_share_bot.domain.enums.rental_status import RentalStatus
+from game_share_bot.domain.enums.disc_status import DiscStatus
 logger = get_logger(__name__)
 
 
