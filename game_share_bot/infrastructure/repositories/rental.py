@@ -2,7 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta
+
 from game_share_bot.infrastructure.models import Rental, Disc, User, Game
+from game_share_bot.domain.enums import RentalStatus, DiscStatus
 from .base import BaseRepository
 
 
@@ -18,7 +20,7 @@ class RentalRepository(BaseRepository[Rental]):
         rental_data = {
             "user_id": user_id,
             "disc_id": disc_id,
-            "status_id": 1,
+            "status_id": RentalStatus.ACTIVE,
             "start_date": datetime.now(),
             "expected_end_date": datetime.now() + timedelta(days=7),
             "actual_end_date": None
@@ -34,7 +36,7 @@ class RentalRepository(BaseRepository[Rental]):
             .where(
                 Rental.user_id == user_id,
                 Disc.game_id == game_id,
-                Rental.status_id == 1
+                Rental.status_id == RentalStatus.ACTIVE
             )
         )
         result = await self.session.execute(stmt)
@@ -53,8 +55,24 @@ class RentalRepository(BaseRepository[Rental]):
             )
             .where(
                 User.tg_id == tg_id,
-                Rental.status_id == 1
+                Rental.status_id.in_([RentalStatus.ACTIVE, RentalStatus.PENDING_RETURN])
             )
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_pending_return_rentals(self) -> list[Rental]:
+        """Возвращает все аренды, ожидающие подтверждения возврата"""
+        stmt = (
+            select(Rental)
+            .join(User, Rental.user_id == User.id)
+            .join(Disc, Rental.disc_id == Disc.disc_id)
+            .join(Game, Disc.game_id == Game.id)
+            .options(
+                selectinload(Rental.user),
+                selectinload(Rental.disc).selectinload(Disc.game)
+            )
+            .where(Rental.status_id == RentalStatus.PENDING_RETURN)
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
@@ -82,15 +100,42 @@ class RentalRepository(BaseRepository[Rental]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def update_rental_status(self, rental_id: int, status_id: int) -> bool:
+    async def update_rental_status(self, rental_id: int, status: RentalStatus) -> bool:
         """Обновляет статус аренды и устанавливает дату возврата"""
         rental = await self.get_by_id_with_disc(rental_id)
         if not rental:
             return False
 
-        rental.status_id = status_id
-        if status_id == 2:
+        rental.status_id = status
+        if status == RentalStatus.COMPLETED:
             rental.actual_end_date = datetime.now()
+
+        await self.session.commit()
+        return True
+
+    async def confirm_return(self, rental_id: int) -> bool:
+        """Подтверждает возврат аренды администратором"""
+        rental = await self.get_by_id_with_disc(rental_id)
+        if not rental:
+            return False
+
+        rental.status_id = RentalStatus.COMPLETED
+        rental.actual_end_date = datetime.now()
+
+        # Обновляем статус диска на доступный
+        rental.disc.status_id = DiscStatus.AVAILABLE
+
+        await self.session.commit()
+        return True
+
+    async def reject_return(self, rental_id: int) -> bool:
+        """Отклоняет возврат аренды (возвращает в активный статус)"""
+        rental = await self.get_by_id_with_disc(rental_id)
+        if not rental:
+            return False
+
+        rental.status_id = RentalStatus.ACTIVE
+        rental.disc.status_id = DiscStatus.RENTED
 
         await self.session.commit()
         return True

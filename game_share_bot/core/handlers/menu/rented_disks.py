@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from game_share_bot.core.callbacks import MenuCallback, RentalCallback
 from game_share_bot.core.keyboards.inline import return_kb
 from game_share_bot.infrastructure.repositories import RentalRepository, DiscRepository
+from game_share_bot.domain.enums import RentalStatus, DiscStatus
 from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()
@@ -20,6 +21,10 @@ def _format_rented_disks_message(rentals: list) -> str:
     for rental in rentals:
         game_title = rental.disc.game.title
         disk_info = f"🎮 {game_title} - экземпляр {rental.disc.disc_id}"
+
+        if rental.status_id == RentalStatus.PENDING_RETURN:
+            disk_info += "\n⏳ Ожидает подтверждения возврата администратором"
+
         disks_list.append(disk_info)
 
     disks_str = "\n\n".join(disks_list)
@@ -31,13 +36,15 @@ def _create_rentals_keyboard(rentals: list) -> InlineKeyboardMarkup:
     keyboard_buttons = []
 
     for rental in rentals:
-        button_text = f"🔙 Вернуть {rental.disc.game.title}"
-        keyboard_buttons.append([
-            InlineKeyboardButton(
-                text=button_text,
-                callback_data=RentalCallback(action="return", rental_id=rental.id).pack()
-            )
-        ])
+        # Показываем кнопку возврата только для активных аренд
+        if rental.status_id == RentalStatus.ACTIVE:
+            button_text = f"🔙 Вернуть {rental.disc.game.title}"
+            keyboard_buttons.append([
+                InlineKeyboardButton(
+                    text=button_text,
+                    callback_data=RentalCallback(action="return", rental_id=rental.id).pack()
+                )
+            ])
 
     keyboard_buttons.append([
         InlineKeyboardButton(
@@ -89,7 +96,7 @@ async def _validate_rental_return(rental_id: int, user_id: int, session: AsyncSe
 
 
 async def _process_disk_return(rental_id: int, session: AsyncSession) -> bool:
-    """Обрабатывает возврат диска и обновляет статусы"""
+    """Обрабатывает запрос на возврат диска (ставит в ожидание подтверждения)"""
     rental_repo = RentalRepository(session)
     disc_repo = DiscRepository(session)
 
@@ -98,8 +105,9 @@ async def _process_disk_return(rental_id: int, session: AsyncSession) -> bool:
         if not rental:
             return False
 
-        success_rental = await rental_repo.update_rental_status(rental_id, 2)
-        success_disc = await disc_repo.update_disc_status(rental.disc_id, 1)
+        # Устанавливаем статус "ожидает подтверждения" для аренды и диска
+        success_rental = await rental_repo.update_rental_status(rental_id, RentalStatus.PENDING_RETURN)
+        success_disc = await disc_repo.update_disc_status(rental.disc_id, DiscStatus.PENDING_RETURN)
 
         return success_rental and success_disc
     except Exception as e:
@@ -109,7 +117,7 @@ async def _process_disk_return(rental_id: int, session: AsyncSession) -> bool:
 
 @router.callback_query(RentalCallback.filter(F.action == "return"))
 async def return_disk(callback: CallbackQuery, callback_data: RentalCallback, session: AsyncSession):
-    """Обрабатывает возврат арендованного диска"""
+    """Обрабатывает запрос на возврат арендованного диска"""
     user_id = callback.from_user.id
     rental_id = callback_data.rental_id
 
@@ -123,13 +131,13 @@ async def return_disk(callback: CallbackQuery, callback_data: RentalCallback, se
 
         success = await _process_disk_return(rental_id, session)
         if not success:
-            await callback.answer("❌ Ошибка при возврате диска")
+            await callback.answer("❌ Ошибка при запросе возврата диска")
             return
 
-        await callback.answer(f"✅ Диск '{game_title}' успешно возвращен!")
+        await callback.answer(f"⏳ Запрос на возврат диска '{game_title}' отправлен администратору!")
         await show_rented_disks(callback, session)
-        logger.info(f"Пользователь {user_id} успешно вернул диск {rental_id}")
+        logger.info(f"Пользователь {user_id} запросил возврат диска {rental_id}")
 
     except Exception as e:
-        logger.error(f"Ошибка при возврате диска: {str(e)}", exc_info=True)
-        await callback.answer("❌ Ошибка при возврате диска")
+        logger.error(f"Ошибка при запросе возврата диска: {str(e)}", exc_info=True)
+        await callback.answer("❌ Ошибка при запросе возврата диска")

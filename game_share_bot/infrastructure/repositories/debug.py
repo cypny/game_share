@@ -44,7 +44,7 @@ class DebugRepository:
             ),
             Game(
                 title="The Legend of Zelda: Breath of the Wild",
-                description="Приключенческая игра с открытым миром",
+                description="Приклюденческая игра с открытым миром",
                 cover_image_url="https://image.winudf.com/v2/image/bW9iaS5hbmRyb2FwcC5wcm9zcGVyaXR5YXBwcy5jNTExMV9zY3JlZW5fN18xNTI0MDQxMDUwXzAyMQ/screen-7.jpg?fakeurl=1&type=.jpg"
             ),
             Game(
@@ -58,15 +58,17 @@ class DebugRepository:
         await self.session.commit()
 
         disc_statuses = [
-            DiscStatus(id=1, status="available"),
-            DiscStatus(id=2, status="rented"),
-            DiscStatus(id=3, status="maintenance")
+            DiscStatus(id=DiscStatus.AVAILABLE, status="available"),
+            DiscStatus(id=DiscStatus.RENTED, status="rented"),
+            DiscStatus(id=DiscStatus.MAINTENANCE, status="maintenance"),
+            DiscStatus(id=DiscStatus.PENDING_RETURN, status="pending_return")
         ]
 
         rental_statuses = [
-            RentalStatus(id=1, status="active"),
-            RentalStatus(id=2, status="completed"),
-            RentalStatus(id=3, status="overdue")
+            RentalStatus(id=RentalStatus.ACTIVE, status="active"),
+            RentalStatus(id=RentalStatus.COMPLETED, status="completed"),
+            RentalStatus(id=RentalStatus.OVERDUE, status="overdue"),
+            RentalStatus(id=RentalStatus.PENDING_RETURN, status="pending_return")
         ]
         logger.info(f"Добавлены статусы")
         discs = []
@@ -76,7 +78,7 @@ class DebugRepository:
                 discs.append(Disc(
                     disc_id=disc_id,
                     game_id=game.id,
-                    status_id=1
+                    status_id=DiscStatus.AVAILABLE
                 ))
                 disc_id += 1
         logger.info(f"Добавлены диски игр")
