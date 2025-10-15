@@ -6,7 +6,7 @@ from game_share_bot.core.callbacks import AdminCallback, RentalCallback, MenuCal
 from game_share_bot.core.keyboards.inline import return_to_admin_panel_kb
 from game_share_bot.infrastructure.repositories import RentalRepository
 from game_share_bot.domain.enums import AdminAction
-from game_share_bot.domain.enums.rental_status import RentalStatus
+from game_share_bot.domain.enums.rental_status import RentalStatusEnum
 from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()

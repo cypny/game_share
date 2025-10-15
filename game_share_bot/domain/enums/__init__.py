@@ -1,5 +1,5 @@
 from .admin_action import AdminAction
-from .rental_status import RentalStatus
-from .disc_status import DiscStatus
+from .rental_status import RentalStatusEnum
+from .disc_status import DiscStatusEnum
 
-__all__ = ['AdminAction', 'RentalStatus', 'DiscStatus']
+__all__ = ['AdminAction', 'RentalStatusEnum', 'DiscStatusEnum']

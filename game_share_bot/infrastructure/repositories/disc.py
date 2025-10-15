@@ -2,7 +2,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.infrastructure.models import Disc
-from game_share_bot.domain.enums.disc_status import DiscStatus
+from game_share_bot.domain.enums.disc_status import DiscStatusEnum
 from .base import BaseRepository
 
 
@@ -16,7 +16,7 @@ class DiscRepository(BaseRepository[Disc]):
         """Получить первый доступный диск для игры"""
         stmt = select(Disc).where(
             Disc.game_id == game_id,
-            Disc.status_id == DiscStatus.AVAILABLE
+            Disc.status_id == DiscStatusEnum.AVAILABLE
         ).limit(1)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
@@ -25,12 +25,12 @@ class DiscRepository(BaseRepository[Disc]):
         """Получить количество доступных дисков для игры"""
         stmt = select(func.count(Disc.disc_id)).where(
             Disc.game_id == game_id,
-            Disc.status_id == DiscStatus.AVAILABLE
+            Disc.status_id == DiscStatusEnum.AVAILABLE
         )
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
-    async def update_disc_status(self, disc_id: int, status: DiscStatus) -> bool:
+    async def update_disc_status(self, disc_id: int, status: DiscStatusEnum) -> bool:
         """Обновляет статус диска"""
         stmt = select(Disc).where(Disc.disc_id == disc_id)
         result = await self.session.execute(stmt)

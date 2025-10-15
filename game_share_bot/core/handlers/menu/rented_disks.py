@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from game_share_bot.core.callbacks import MenuCallback, RentalCallback
 from game_share_bot.core.keyboards.inline import return_kb
 from game_share_bot.infrastructure.repositories import RentalRepository, DiscRepository
-from game_share_bot.domain.enums import RentalStatus, DiscStatus
+from game_share_bot.domain.enums import RentalStatusEnum, DiscStatusEnum
 from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()
@@ -22,7 +22,7 @@ def _format_rented_disks_message(rentals: list) -> str:
         game_title = rental.disc.game.title
         disk_info = f"🎮 {game_title} - экземпляр {rental.disc.disc_id}"
 
-        if rental.status_id == RentalStatus.PENDING_RETURN:
+        if rental.status_id == RentalStatusEnum.PENDING_RETURN:
             disk_info += "\n⏳ Ожидает подтверждения возврата администратором"
 
         disks_list.append(disk_info)
@@ -37,7 +37,7 @@ def _create_rentals_keyboard(rentals: list) -> InlineKeyboardMarkup:
 
     for rental in rentals:
         # Показываем кнопку возврата только для активных аренд
-        if rental.status_id == RentalStatus.ACTIVE:
+        if rental.status_id == RentalStatusEnum.ACTIVE:
             button_text = f"🔙 Вернуть {rental.disc.game.title}"
             keyboard_buttons.append([
                 InlineKeyboardButton(
@@ -106,8 +106,8 @@ async def _process_disk_return(rental_id: int, session: AsyncSession) -> bool:
             return False
 
         # Устанавливаем статус "ожидает подтверждения" для аренды и диска
-        success_rental = await rental_repo.update_rental_status(rental_id, RentalStatus.PENDING_RETURN)
-        success_disc = await disc_repo.update_disc_status(rental.disc_id, DiscStatus.PENDING_RETURN)
+        success_rental = await rental_repo.update_rental_status(rental_id, RentalStatusEnum.PENDING_RETURN)
+        success_disc = await disc_repo.update_disc_status(rental.disc_id, DiscStatusEnum.PENDING_RETURN)
 
         return success_rental and success_disc
     except Exception as e:
