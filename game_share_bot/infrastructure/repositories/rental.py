@@ -23,7 +23,7 @@ class RentalRepository(BaseRepository[Rental]):
             "disc_id": disc_id,
             "status_id": RentalStatusEnum.ACTIVE,
             "start_date": datetime.now(),
-            "expected_end_date": datetime.now() + timedelta(days=7),
+            "expected_end_date": datetime.now() + timedelta(days=30),
             "actual_end_date": None
         }
         return await self.create(**rental_data)

@@ -12,6 +12,7 @@ router = Router()
 logger = get_logger(__name__)
 
 
+# rented_disks.py - улучшенное форматирование дат
 def _format_rented_disks_message(rentals: list) -> str:
     """Форматирует сообщение со списком арендованных дисков"""
     if not rentals:
@@ -20,7 +21,14 @@ def _format_rented_disks_message(rentals: list) -> str:
     disks_list = []
     for rental in rentals:
         game_title = rental.disc.game.title
-        disk_info = f"🎮 {game_title} - экземпляр {rental.disc.disc_id}"
+        start_date = rental.start_date.strftime("%d.%m.%Y")
+        end_date = rental.expected_end_date.strftime("%d.%m.%Y")
+
+        disk_info = (
+            f"🎮 {game_title}\n"
+            f"📅 Дата получения: {start_date}\n"
+            f"⏰ Сдать до: {end_date}"
+        )
 
         if rental.status_id == RentalStatusEnum.PENDING_RETURN:
             disk_info += "\n⏳ Ожидает подтверждения возврата администратором"
