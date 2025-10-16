@@ -5,6 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from game_share_bot.core.keyboards.buttons import _return_button
 from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.callbacks.subscription import SubscriptionCallback
+from game_share_bot.domain.enums import MenuSection
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
 from game_share_bot.domain.enums.subscription.type import SubscriptionType
 
@@ -29,7 +30,7 @@ def subscription_actions_kb() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [default_subscription_button],
             [premium_subscription_button],
-            [_return_button(MenuCallback(section ="personal"))]
+            [_return_button(MenuCallback(section =MenuSection.PERSONAL_CABINET))]
         ]
     )
 

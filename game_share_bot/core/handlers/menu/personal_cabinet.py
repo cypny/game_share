@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.keyboards.inline import personal_cabinet_kb
+from game_share_bot.domain.enums import MenuSection
 from game_share_bot.infrastructure.repositories import UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 
@@ -12,7 +13,7 @@ router = Router()
 logger = get_logger(__name__)
 
 
-@router.callback_query(MenuCallback.filter(F.section == "personal"))
+@router.callback_query(MenuCallback.filter_by_section(MenuSection.PERSONAL_CABINET))
 async def personal_cabinet(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     await state.clear()
     user_id = callback.from_user.id
@@ -40,13 +41,13 @@ async def personal_cabinet(callback: CallbackQuery, session: AsyncSession, state
 
 
 
-@router.callback_query(MenuCallback.filter(F.section == "manage_subscription"))
+@router.callback_query(MenuCallback.filter_by_section(MenuSection.MANAGE_SUBSCRIPTION))
 async def manage_subscription(callback: CallbackQuery):
     """Обработчик кнопки 'Управление подпиской'"""
     await callback.answer("📦 Функционал 'Управление подпиской' в разработке")
 
 
-@router.callback_query(MenuCallback.filter(F.section == "my_queue"))
+@router.callback_query(MenuCallback.filter_by_section(MenuSection.QUEUE))
 async def my_queue(callback: CallbackQuery):
     """Обрабатывает кнопку просмотра очереди"""
     await callback.answer("📋 Функционал 'Моя очередь' в разработке")

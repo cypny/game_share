@@ -2,19 +2,18 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from game_share_bot.core.callbacks import CatalogCallback, MenuCallback
 from game_share_bot.core.keyboards import return_kb, get_game_detail_kb
+from game_share_bot.domain.enums import MenuSection
 from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
 from game_share_bot.infrastructure.utils import get_logger
-
 
 router = Router()
 logger = get_logger(__name__)
 
 
 @router.callback_query(CatalogCallback.filter())
-async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, session: AsyncSession):
+async def catalog(callback: CallbackQuery, session: AsyncSession):
     user_id = callback.from_user.id
     logger.info(f"Пользователь {user_id} открыл каталог")
 
@@ -37,14 +36,13 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
         await callback.message.edit_text(
             reply,
             parse_mode="HTML",
-            reply_markup=return_kb(MenuCallback(section="main"))  # Используем старую работающую клавиатуру
+            reply_markup=return_kb(MenuCallback(section=MenuSection.MAIN))  # Используем старую работающую клавиатуру
         )
         logger.info(f"Каталог успешно отправлен пользователю {user_id}")
 
     except Exception as e:
         logger.error(f"Ошибка при получении каталога для пользователя {user_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при загрузке каталога")
-
 
 
 @router.message(F.text.startswith("/game_"))
@@ -207,4 +205,3 @@ async def take_game(callback: CallbackQuery, session: AsyncSession):
     except Exception as e:
         logger.error(f"Ошибка при взятии игры {game_id} пользователем {user_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при взятии игры")
-
