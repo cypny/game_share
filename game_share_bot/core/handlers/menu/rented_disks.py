@@ -1,11 +1,12 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import MenuCallback, RentalCallback
-from game_share_bot.core.keyboards.inline import return_kb
-from game_share_bot.infrastructure.repositories import RentalRepository, DiscRepository
+from game_share_bot.core.keyboards.inline import return_kb, rentals_kb
 from game_share_bot.domain.enums import RentalStatusEnum, DiscStatusEnum
+from game_share_bot.infrastructure.models import Rental
+from game_share_bot.infrastructure.repositories import RentalRepository, DiscRepository
 from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()
@@ -13,7 +14,7 @@ logger = get_logger(__name__)
 
 
 # rented_disks.py - улучшенное форматирование дат
-def _format_rented_disks_message(rentals: list) -> str:
+def _format_rented_disks_message(rentals: list[Rental]) -> str:
     """Форматирует сообщение со списком арендованных дисков"""
     if not rentals:
         return "📦 У вас нет арендованных дисков"
@@ -39,32 +40,7 @@ def _format_rented_disks_message(rentals: list) -> str:
     return f"📦 Ваши арендованные диски:\n\n{disks_str}"
 
 
-def _create_rentals_keyboard(rentals: list) -> InlineKeyboardMarkup:
-    """Создает клавиатуру с кнопками возврата для каждого диска"""
-    keyboard_buttons = []
-
-    for rental in rentals:
-        # Показываем кнопку возврата только для активных аренд
-        if rental.status_id == RentalStatusEnum.ACTIVE:
-            button_text = f"🔙 Вернуть {rental.disc.game.title}"
-            keyboard_buttons.append([
-                InlineKeyboardButton(
-                    text=button_text,
-                    callback_data=RentalCallback(action="return", rental_id=rental.id).pack()
-                )
-            ])
-
-    keyboard_buttons.append([
-        InlineKeyboardButton(
-            text="⬅️ Назад",
-            callback_data=MenuCallback(section='personal').pack()
-        )
-    ])
-
-    return InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
-
-
-async def _get_user_rentals(user_id: int, session: AsyncSession) -> list:
+async def _get_user_rentals(user_id: int, session: AsyncSession) -> list[Rental]:
     """Получает список активных аренд пользователя"""
     rental_repo = RentalRepository(session)
     return await rental_repo.get_active_rentals_by_user(user_id)
@@ -79,7 +55,7 @@ async def show_rented_disks(callback: CallbackQuery, session: AsyncSession):
     try:
         rentals = await _get_user_rentals(user_id, session)
         text = _format_rented_disks_message(rentals)
-        markup = _create_rentals_keyboard(rentals) if rentals else return_kb(MenuCallback(section='personal'))
+        markup = rentals_kb(rentals) if rentals else return_kb(MenuCallback(section='personal'))
 
         await callback.message.edit_text(text, reply_markup=markup)
         logger.info(f"Список арендованных дисков отправлен пользователю {user_id}")

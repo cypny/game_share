@@ -1,18 +1,18 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, inspect
 
+from game_share_bot.core.callbacks.subscription import SubscriptionCallback
 from game_share_bot.core.keyboards import return_kb
 from game_share_bot.core.keyboards.subscription import subscription_actions_kb, select_duration_kb, \
     confirm_subscription_buy_kb
-from game_share_bot.core.callbacks.subscription import SubscriptionCallback
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
+from game_share_bot.infrastructure.models import SubscriptionPlan
 from game_share_bot.infrastructure.repositories import SubscriptionRepository
 from game_share_bot.infrastructure.repositories import UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 from game_share_bot.infrastructure.utils.formatting import format_subscription_info, format_subscription_plan
-from game_share_bot.infrastructure.models import SubscriptionPlan
 
 router = Router()
 logger = get_logger(__name__)
@@ -40,8 +40,8 @@ async def select_subscription_duration(
         session: AsyncSession):
     sub_type = callback_data.subscription_type
     sub_plan = await session.scalar(
-            select(SubscriptionPlan).where(SubscriptionPlan.name == sub_type)
-        )
+        select(SubscriptionPlan).where(SubscriptionPlan.name == sub_type)
+    )
     message = (f"Подписка:\n\n"
                f"{format_subscription_plan(sub_plan)}\n\n"
                f"Выберите длительность")
@@ -77,4 +77,3 @@ async def purchase_subscription(callback: CallbackQuery, callback_data: Subscrip
         text=f"Пока не реализовано: подписка {callback_data.subscription_type} {callback_data.month_duration} месяцев",
         reply_markup=return_kb(SubscriptionCallback(action=SubscriptionAction.INFO)),
     )
-

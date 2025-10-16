@@ -38,10 +38,6 @@ async def personal_cabinet(callback: CallbackQuery, session: AsyncSession, state
         await callback.answer("❌ Ошибка при загрузке личного кабинета")
 
 
-@router.callback_query(MenuCallback.filter(F.section == "rented_disks"))
-async def rented_disks(callback: CallbackQuery):
-    """Обработчик кнопки 'Арендованные диски'"""
-    await callback.answer("📀 Функционал 'Арендованные диски' в разработке")
 
 
 @router.callback_query(MenuCallback.filter(F.section == "manage_subscription"))
