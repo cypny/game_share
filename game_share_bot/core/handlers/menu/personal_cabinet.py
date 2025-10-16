@@ -44,8 +44,13 @@ async def rented_disks(callback: CallbackQuery):
     await callback.answer("📀 Функционал 'Арендованные диски' в разработке")
 
 
+@router.callback_query(MenuCallback.filter(F.section == "manage_subscription"))
+async def manage_subscription(callback: CallbackQuery):
+    """Обработчик кнопки 'Управление подпиской'"""
+    await callback.answer("📦 Функционал 'Управление подпиской' в разработке")
+
 
 @router.callback_query(MenuCallback.filter(F.section == "my_queue"))
 async def my_queue(callback: CallbackQuery):
-    """Обработчик кнопки 'Моя очередь'"""
+    """Обрабатывает кнопку просмотра очереди"""
     await callback.answer("📋 Функционал 'Моя очередь' в разработке")

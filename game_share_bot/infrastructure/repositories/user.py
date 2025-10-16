@@ -31,6 +31,7 @@ class UserRepository(BaseRepository[User]):
         return await self.get_by_field("role", role)
 
     async def make_admin(self, tg_id: int) -> bool:
+        """Выдает права администратора пользователю"""
         user = await self.get_by_tg_id(tg_id)
         if user is None:
             return False
@@ -39,3 +40,9 @@ class UserRepository(BaseRepository[User]):
         await self.session.commit()
         return True
 
+    async def get_all_admins(self) -> list[User]:
+        """Возвращает список всех администраторов"""
+        from sqlalchemy import select
+        stmt = select(User).where(User.role == "admin")
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
