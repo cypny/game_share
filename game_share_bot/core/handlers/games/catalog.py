@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import CatalogCallback, MenuCallback
 from game_share_bot.core.keyboards import return_kb, get_game_detail_kb
-from game_share_bot.domain.enums import MenuSection
+from game_share_bot.domain.enums import MenuSection, DiscStatus
 from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 
@@ -36,7 +36,7 @@ async def catalog(callback: CallbackQuery, session: AsyncSession):
         await callback.message.edit_text(
             reply,
             parse_mode="HTML",
-            reply_markup=return_kb(MenuCallback(section=MenuSection.MAIN))  # Используем старую работающую клавиатуру
+            reply_markup=return_kb(MenuCallback(section=MenuSection.MAIN))
         )
         logger.info(f"Каталог успешно отправлен пользователю {user_id}")
 
@@ -168,7 +168,7 @@ async def take_game(callback: CallbackQuery, session: AsyncSession):
         rental = await rental_repo.create_rental(user.id, available_disc.disc_id)
         logger.info(f"Аренда создана: {rental.id}")
 
-        result = await disc_repo.update_disc_status(available_disc.disc_id, 2)  # 2 = rented
+        result = await disc_repo.update_disc_status(available_disc.disc_id, DiscStatus.RENTED)
         logger.info(f"Статус диска обновлен: {result}")
 
         # Получаем обновленное количество доступных дисков

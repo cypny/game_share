@@ -1,4 +1,4 @@
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext

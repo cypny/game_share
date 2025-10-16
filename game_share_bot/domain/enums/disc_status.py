@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 
-class DiscStatusEnum(IntEnum):
+class DiscStatus(IntEnum):
     """Статусы игровых дисков"""
     AVAILABLE = 1
     RENTED = 2

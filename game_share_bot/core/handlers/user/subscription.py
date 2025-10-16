@@ -4,9 +4,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks.subscription import SubscriptionCallback
-from game_share_bot.core.keyboards import return_kb
-from game_share_bot.core.keyboards.subscription import subscription_actions_kb, select_duration_kb, \
+from game_share_bot.core.keyboards import (
+    return_kb,
+    subscription_actions_kb,
+    select_duration_kb,
     confirm_subscription_buy_kb
+)
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
 from game_share_bot.infrastructure.models import SubscriptionPlan
 from game_share_bot.infrastructure.repositories import SubscriptionRepository

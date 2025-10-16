@@ -5,8 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.handlers.utils import respond_user
-from game_share_bot.core.keyboards import main_menu_kb
-from game_share_bot.core.keyboards.inline import return_kb
+from game_share_bot.core.keyboards import main_menu_kb, return_kb
 from game_share_bot.domain.enums import MenuSection
 from game_share_bot.infrastructure.utils import get_logger
 

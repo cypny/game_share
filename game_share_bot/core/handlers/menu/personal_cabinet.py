@@ -1,10 +1,10 @@
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import MenuCallback
-from game_share_bot.core.keyboards.inline import personal_cabinet_kb
+from game_share_bot.core.keyboards import personal_cabinet_kb
 from game_share_bot.domain.enums import MenuSection
 from game_share_bot.infrastructure.repositories import UserRepository
 from game_share_bot.infrastructure.utils import get_logger
@@ -37,8 +37,6 @@ async def personal_cabinet(callback: CallbackQuery, session: AsyncSession, state
     except Exception as e:
         logger.error(f"Ошибка при открытии личного кабинета для пользователя {user_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при загрузке личного кабинета")
-
-
 
 
 @router.callback_query(MenuCallback.filter_by_section(MenuSection.MANAGE_SUBSCRIPTION))

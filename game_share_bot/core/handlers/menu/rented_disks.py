@@ -3,8 +3,8 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import MenuCallback, RentalCallback
-from game_share_bot.core.keyboards.inline import return_kb, rentals_kb
-from game_share_bot.domain.enums import RentalStatusEnum, DiscStatusEnum, MenuSection
+from game_share_bot.core.keyboards import return_kb, rentals_kb
+from game_share_bot.domain.enums import RentalStatus, DiscStatus, MenuSection
 from game_share_bot.infrastructure.models import Rental
 from game_share_bot.infrastructure.repositories import RentalRepository, DiscRepository
 from game_share_bot.infrastructure.utils import get_logger
@@ -31,7 +31,7 @@ def _format_rented_disks_message(rentals: list[Rental]) -> str:
             f"⏰ Сдать до: {end_date}"
         )
 
-        if rental.status_id == RentalStatusEnum.PENDING_RETURN:
+        if rental.status_id == RentalStatus.PENDING_RETURN:
             disk_info += "\n⏳ Ожидает подтверждения возврата администратором"
 
         disks_list.append(disk_info)
@@ -90,8 +90,8 @@ async def _process_disk_return(rental_id: int, session: AsyncSession) -> bool:
             return False
 
         # Устанавливаем статус "ожидает подтверждения" для аренды и диска
-        success_rental = await rental_repo.update_rental_status(rental_id, RentalStatusEnum.PENDING_RETURN)
-        success_disc = await disc_repo.update_disc_status(rental.disc_id, DiscStatusEnum.PENDING_RETURN)
+        success_rental = await rental_repo.update_rental_status(rental_id, RentalStatus.PENDING_RETURN)
+        success_disc = await disc_repo.update_disc_status(rental.disc_id, DiscStatus.PENDING_RETURN)
 
         return success_rental and success_disc
     except Exception as e:

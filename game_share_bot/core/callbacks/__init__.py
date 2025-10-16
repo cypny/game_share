@@ -1,10 +1,11 @@
+from .admin import AdminCallback
 from .catalog import CatalogCallback
+from .confirmation import ConfirmationCallback
 from .game import GameCallback
 from .menu import MenuCallback
-from .user import UserCallback
-from .admin import AdminCallback
-from .confirmation import ConfirmationCallback
 from .rental import RentalCallback
+from .subscription import SubscriptionCallback
+from .user import UserCallback
 
 __all__ = [
     "MenuCallback",
@@ -13,5 +14,6 @@ __all__ = [
     "UserCallback",
     "AdminCallback",
     "ConfirmationCallback",
-    "RentalCallback"
+    "RentalCallback",
+    "SubscriptionCallback"
 ]

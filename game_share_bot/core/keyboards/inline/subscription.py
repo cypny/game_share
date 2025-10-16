@@ -1,13 +1,8 @@
-import logging
-
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from game_share_bot.core.keyboards.buttons import _return_button
-from game_share_bot.core.callbacks import MenuCallback
-from game_share_bot.core.callbacks.subscription import SubscriptionCallback
-from game_share_bot.domain.enums import MenuSection
-from game_share_bot.domain.enums.subscription.action import SubscriptionAction
-from game_share_bot.domain.enums.subscription.type import SubscriptionType
+from game_share_bot.core.callbacks import MenuCallback, SubscriptionCallback
+from game_share_bot.core.keyboards.inline.buttons import return_button
+from game_share_bot.domain.enums import MenuSection, SubscriptionAction, SubscriptionType
 
 
 def subscription_actions_kb() -> InlineKeyboardMarkup:
@@ -30,24 +25,26 @@ def subscription_actions_kb() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [default_subscription_button],
             [premium_subscription_button],
-            [_return_button(MenuCallback(section =MenuSection.PERSONAL_CABINET))]
+            [return_button(MenuCallback(section=MenuSection.PERSONAL_CABINET))]
         ]
     )
 
+
 def select_duration_kb(sub_type: SubscriptionType) -> InlineKeyboardMarkup:
     buttons = []
-    duration_months = [1,2,3,6,12]
+    duration_months = [1, 2, 3, 6, 12]
     for month in duration_months:
         buttons.append(
-                InlineKeyboardButton(
-                    text=f"{month} месяцев",
-                    callback_data=SubscriptionCallback(
-                        action=SubscriptionAction.CONFIRM_BUY,
-                        subscription_type=sub_type,
-                        month_duration=month
-                    ).pack())
+            InlineKeyboardButton(
+                text=f"{month} месяцев",
+                callback_data=SubscriptionCallback(
+                    action=SubscriptionAction.CONFIRM_BUY,
+                    subscription_type=sub_type,
+                    month_duration=month
+                ).pack())
         )
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
+
 
 def confirm_subscription_buy_kb(sub_type: SubscriptionType, duration: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(

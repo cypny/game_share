@@ -1,6 +1,6 @@
 from aiogram.filters.callback_data import CallbackData, CallbackQueryFilter
 
-from game_share_bot.domain.enums.user_action import UserAction
+from game_share_bot.domain.enums import UserAction
 
 
 class UserCallback(CallbackData, prefix="user"):

@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 
-class RentalStatusEnum(IntEnum):
+class RentalStatus(IntEnum):
     """Статусы аренды игровых дисков"""
     ACTIVE = 1
     COMPLETED = 2
