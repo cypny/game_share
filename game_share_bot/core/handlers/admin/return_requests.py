@@ -1,10 +1,11 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import AdminCallback, RentalCallback
-from game_share_bot.core.keyboards import return_to_admin_panel_kb
+from game_share_bot.core.keyboards import return_to_admin_panel_kb, returns_confirmation_kb
 from game_share_bot.domain.enums import AdminAction
+from game_share_bot.infrastructure.models import Rental
 from game_share_bot.infrastructure.repositories import RentalRepository
 from game_share_bot.infrastructure.utils import get_logger
 
@@ -12,7 +13,7 @@ router = Router()
 logger = get_logger(__name__)
 
 
-def _format_pending_returns_message(rentals: list) -> str:
+def _format_pending_returns_message(rentals: list[Rental]) -> str:
     """Форматирует сообщение со списком запросов на возврат"""
     if not rentals:
         return "📋 Запросы на возврат отсутствуют"
@@ -30,37 +31,6 @@ def _format_pending_returns_message(rentals: list) -> str:
     return f"📋 Запросы на возврат ({len(rentals)}):\n\n{returns_str}"
 
 
-def _create_returns_keyboard(rentals: list) -> InlineKeyboardMarkup:
-    """Создает клавиатуру с кнопками подтверждения/отклонения возвратов"""
-    keyboard_buttons = []
-
-    for rental in rentals:
-        button_text = f"✅ Подтвердить возврат {rental.disc.game.title}"
-        keyboard_buttons.append([
-            InlineKeyboardButton(
-                text=button_text,
-                callback_data=RentalCallback(action="confirm_return", rental_id=rental.id).pack()
-            )
-        ])
-
-        button_text = f"❌ Отклонить возврат {rental.disc.game.title}"
-        keyboard_buttons.append([
-            InlineKeyboardButton(
-                text=button_text,
-                callback_data=RentalCallback(action="reject_return", rental_id=rental.id).pack()
-            )
-        ])
-
-    keyboard_buttons.append([
-        InlineKeyboardButton(
-            text="⬅️ Назад в админ-панель",
-            callback_data=AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL).pack()
-        )
-    ])
-
-    return InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
-
-
 @router.callback_query(AdminCallback.filter(F.action == AdminAction.VIEW_RETURN_REQUESTS))
 async def show_return_requests(callback: CallbackQuery, session: AsyncSession):
     """Показывает все запросы на возврат для администратора"""
@@ -72,7 +42,7 @@ async def show_return_requests(callback: CallbackQuery, session: AsyncSession):
         pending_returns = await rental_repo.get_pending_return_rentals()
 
         text = _format_pending_returns_message(pending_returns)
-        markup = _create_returns_keyboard(pending_returns) if pending_returns else return_to_admin_panel_kb()
+        markup = returns_confirmation_kb(pending_returns) if pending_returns else return_to_admin_panel_kb()
 
         await callback.message.edit_text(text, reply_markup=markup)
         logger.info(f"Список запросов на возврат отправлен администратору {user_id}")
