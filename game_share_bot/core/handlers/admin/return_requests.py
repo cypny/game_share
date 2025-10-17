@@ -31,7 +31,7 @@ def _format_pending_returns_message(rentals: list[Rental]) -> str:
     return f"📋 Запросы на возврат ({len(rentals)}):\n\n{returns_str}"
 
 
-@router.callback_query(AdminCallback.filter(F.action == AdminAction.VIEW_RETURN_REQUESTS))
+@router.callback_query(AdminCallback.filter_by_action(AdminAction.VIEW_RETURN_REQUESTS))
 async def show_return_requests(callback: CallbackQuery, session: AsyncSession):
     """Показывает все запросы на возврат для администратора"""
     user_id = callback.from_user.id
