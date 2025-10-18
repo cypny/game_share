@@ -1,9 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from game_share_bot.domain.enums.disc_status import DiscStatus as DiscStatusEnum
+from game_share_bot.domain.enums.rental_status import RentalStatus as RentalStatusEnum
 from game_share_bot.infrastructure.models import Game, Disc, DiscStatus, RentalStatus, User
 from game_share_bot.infrastructure.utils import get_logger
-from game_share_bot.domain.enums.rental_status import RentalStatus
-from game_share_bot.domain.enums.disc_status import DiscStatus
+
 logger = get_logger(__name__)
 
 
@@ -70,17 +71,17 @@ class DebugRepository:
         await self.session.commit()
 
         disc_statuses = [
-            DiscStatus(id=DiscStatus.AVAILABLE, status="available"),
-            DiscStatus(id=DiscStatus.RENTED, status="rented"),
-            DiscStatus(id=DiscStatus.MAINTENANCE, status="maintenance"),
-            DiscStatus(id=DiscStatus.PENDING_RETURN, status="pending_return")
+            DiscStatus(id=DiscStatusEnum.AVAILABLE, status="available"),
+            DiscStatus(id=DiscStatusEnum.RENTED, status="rented"),
+            DiscStatus(id=DiscStatusEnum.MAINTENANCE, status="maintenance"),
+            DiscStatus(id=DiscStatusEnum.PENDING_RETURN, status="pending_return")
         ]
 
         rental_statuses = [
-            RentalStatus(id=RentalStatus.ACTIVE, status="active"),
-            RentalStatus(id=RentalStatus.COMPLETED, status="completed"),
-            RentalStatus(id=RentalStatus.OVERDUE, status="overdue"),
-            RentalStatus(id=RentalStatus.PENDING_RETURN, status="pending_return")
+            RentalStatus(id=RentalStatusEnum.ACTIVE, status="active"),
+            RentalStatus(id=RentalStatusEnum.COMPLETED, status="completed"),
+            RentalStatus(id=RentalStatusEnum.OVERDUE, status="overdue"),
+            RentalStatus(id=RentalStatusEnum.PENDING_RETURN, status="pending_return")
         ]
         logger.info(f"Добавлены статусы")
         discs = []
@@ -90,7 +91,7 @@ class DebugRepository:
                 discs.append(Disc(
                     disc_id=disc_id,
                     game_id=game.id,
-                    status_id=DiscStatus.AVAILABLE
+                    status_id=DiscStatusEnum.AVAILABLE
                 ))
                 disc_id += 1
         logger.info(f"Добавлены диски игр")
