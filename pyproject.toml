@@ -3,7 +3,7 @@ name = "game-share-bot"
 version = "0.1.0"
 description = "Telegram bot for the Console Games Library"
 authors = [
-    {name = "Team 21",email = "you@example.com"}
+    {name = "Team 21", email = "you@example.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.12"
@@ -18,7 +18,6 @@ dependencies = [
     "aiosqlite (>=0.21.0,<0.22.0)"
 ]
 
-
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -26,3 +25,14 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 package-mode = false
 
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.0"
+pytest-mock = "^3.11.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
