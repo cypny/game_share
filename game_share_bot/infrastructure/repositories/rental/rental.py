@@ -18,12 +18,13 @@ class RentalRepository(BaseRepository[Rental]):
 
     async def create_rental(self, user_id: int, disc_id: int) -> Rental:
         """Создает новую запись об аренде диска"""
+        now = datetime.utcnow()
         rental_data = {
             "user_id": user_id,
             "disc_id": disc_id,
             "status_id": RentalStatus.ACTIVE,
-            "start_date": datetime.now(),
-            "expected_end_date": datetime.now() + timedelta(days=30),
+            "start_date": now,
+            "expected_end_date": now + timedelta(days=30),
             "actual_end_date": None
         }
         return await self.create(**rental_data)
@@ -109,7 +110,7 @@ class RentalRepository(BaseRepository[Rental]):
 
         rental.status_id = status
         if status == RentalStatus.COMPLETED:
-            rental.actual_end_date = datetime.now()
+            rental.actual_end_date = datetime.utcnow()
 
         await self.session.commit()
         return True
@@ -121,7 +122,7 @@ class RentalRepository(BaseRepository[Rental]):
             return False
 
         rental.status_id = RentalStatus.COMPLETED
-        rental.actual_end_date = datetime.now()
+        rental.actual_end_date = datetime.utcnow()
 
         # Обновляем статус диска на доступный
         rental.disc.status_id = DiscStatus.AVAILABLE

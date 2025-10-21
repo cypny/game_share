@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timezone
 
 from game_share_bot.domain.enums.disc_status import DiscStatus as DiscStatusEnum
 from game_share_bot.domain.enums.rental_status import RentalStatus as RentalStatusEnum
