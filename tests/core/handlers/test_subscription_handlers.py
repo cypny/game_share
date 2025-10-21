@@ -6,12 +6,9 @@ from game_share_bot.domain.enums.subscription.type import SubscriptionType
 
 
 class TestSubscriptionHandlers:
-    """Тесты для хендлеров подписки"""
-
     @pytest.mark.asyncio
     async def test_subscription_info_and_buying_with_subscription(self, mock_callback_query, mock_user,
                                                                   mock_subscription):
-        """Тест показа информации о подписке когда подписка есть"""
         from game_share_bot.core.handlers.user.subscription import subscription_info_and_buying
 
         session = AsyncMock()
@@ -38,7 +35,6 @@ class TestSubscriptionHandlers:
 
     @pytest.mark.asyncio
     async def test_subscription_info_and_buying_no_subscription(self, mock_callback_query, mock_user):
-        """Тест показа информации о подписке когда подписки нет"""
         from game_share_bot.core.handlers.user.subscription import subscription_info_and_buying
 
         session = AsyncMock()
@@ -62,7 +58,6 @@ class TestSubscriptionHandlers:
 
     @pytest.mark.asyncio
     async def test_select_subscription_duration(self, mock_callback_query, mock_subscription_plan):
-        """Тест выбора длительности подписки"""
         from game_share_bot.core.handlers.user.subscription import select_subscription_duration
 
         session = AsyncMock()
@@ -86,7 +81,6 @@ class TestSubscriptionHandlers:
 
     @pytest.mark.asyncio
     async def test_select_subscription_duration_plan_not_found(self, mock_callback_query):
-        """Тест выбора длительности когда план не найден"""
         from game_share_bot.core.handlers.user.subscription import select_subscription_duration
 
         session = AsyncMock()
@@ -108,7 +102,6 @@ class TestSubscriptionHandlers:
 
     @pytest.mark.asyncio
     async def test_confirm_subscription_buy(self, mock_callback_query):
-        """Тест подтверждения покупки подписки"""
         from game_share_bot.core.handlers.user.subscription import confirm_subscription_buy
 
         callback_data = SubscriptionCallback(
@@ -127,7 +120,6 @@ class TestSubscriptionHandlers:
 
     @pytest.mark.asyncio
     async def test_purchase_subscription(self, mock_callback_query):
-        """Тест покупки подписки (заглушка)"""
         from game_share_bot.core.handlers.user.subscription import purchase_subscription
 
         callback_data = SubscriptionCallback(
@@ -146,7 +138,6 @@ class TestSubscriptionHandlers:
 
     @pytest.mark.asyncio
     async def test_subscription_info_user_not_found(self, mock_callback_query):
-        """Тест показа информации о подписке когда пользователь не найден"""
         from game_share_bot.core.handlers.user.subscription import subscription_info_and_buying
 
         session = AsyncMock()
@@ -160,20 +151,15 @@ class TestSubscriptionHandlers:
                 patch('game_share_bot.core.handlers.user.subscription.SubscriptionRepository', return_value=sub_repo), \
                 patch('game_share_bot.core.handlers.user.subscription.format_subscription_info') as mock_format, \
                 patch('game_share_bot.core.handlers.user.subscription.subscription_actions_kb') as mock_kb:
-            # В реальном коде при user=None будет ошибка, но мы мокаем чтобы тест прошел
             mock_format.return_value = "Ошибка: пользователь не найден"
             mock_kb.return_value = "mock_keyboard"
 
             await subscription_info_and_buying(mock_callback_query, session)
 
-        # В текущей реализации хендлер все равно вызывает get_by_user даже если user=None
-        # Поэтому проверяем, что он был вызван с None
         sub_repo.get_by_user.assert_called_once_with(None)
 
     @pytest.mark.asyncio
     async def test_subscription_callback_data_validation(self):
-        """Тест валидации callback данных подписки"""
-        # Используем реальный SubscriptionCallback вместо MagicMock
         callback_data = SubscriptionCallback(
             action=SubscriptionAction.INFO
         )
