@@ -1,7 +1,10 @@
+import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import BigInteger, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
+
 
 from game_share_bot.infrastructure.models.base import Base
 
@@ -10,8 +13,8 @@ class Rental(Base):
     __tablename__ = "rentals"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"))
-    disc_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("general_discs.disc_id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    disc_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("general_discs.disc_id"))
     status_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("rental_statuses.id"))
     start_date: Mapped[datetime] = mapped_column(DateTime)
     expected_end_date: Mapped[datetime] = mapped_column(DateTime)
