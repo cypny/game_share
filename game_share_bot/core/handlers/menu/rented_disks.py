@@ -8,36 +8,10 @@ from game_share_bot.domain.enums import RentalStatus, DiscStatus, MenuSection
 from game_share_bot.infrastructure.models import Rental
 from game_share_bot.infrastructure.repositories import RentalRepository, DiscRepository
 from game_share_bot.infrastructure.utils import get_logger
+from infrastructure.utils.formatting import format_rented_disks_message
 
 router = Router()
 logger = get_logger(__name__)
-
-
-# rented_disks.py - улучшенное форматирование дат
-def _format_rented_disks_message(rentals: list[Rental]) -> str:
-    """Форматирует сообщение со списком арендованных дисков"""
-    if not rentals:
-        return "📦 У вас нет арендованных дисков"
-
-    disks_list = []
-    for rental in rentals:
-        game_title = rental.disc.game.title
-        start_date = rental.start_date.strftime("%d.%m.%Y")
-        end_date = rental.expected_end_date.strftime("%d.%m.%Y")
-
-        disk_info = (
-            f"🎮 {game_title}\n"
-            f"📅 Дата получения: {start_date}\n"
-            f"⏰ Сдать до: {end_date}"
-        )
-
-        if rental.status_id == RentalStatus.PENDING_RETURN:
-            disk_info += "\n⏳ Ожидает подтверждения возврата администратором"
-
-        disks_list.append(disk_info)
-
-    disks_str = "\n\n".join(disks_list)
-    return f"📦 Ваши арендованные диски:\n\n{disks_str}"
 
 
 async def _get_user_rentals(user_id: int, session: AsyncSession) -> list[Rental]:
@@ -54,7 +28,7 @@ async def show_rented_disks(callback: CallbackQuery, session: AsyncSession):
 
     try:
         rentals = await _get_user_rentals(user_id, session)
-        text = _format_rented_disks_message(rentals)
+        text = format_rented_disks_message(rentals)
         markup = rentals_kb(rentals) if rentals else return_kb(MenuCallback(section=MenuSection.PERSONAL_CABINET))
 
         await callback.message.edit_text(text, reply_markup=markup)

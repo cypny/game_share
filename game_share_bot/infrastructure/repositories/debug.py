@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from game_share_bot.domain.enums.disc_status import DiscStatus as DiscStatusEnum
 from game_share_bot.domain.enums.rental_status import RentalStatus as RentalStatusEnum
 from game_share_bot.infrastructure.models import Game, Disc, DiscStatus, RentalStatus, User
-from game_share_bot.infrastructure.utils import get_logger
+from game_share_bot.infrastructure.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

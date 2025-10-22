@@ -12,7 +12,8 @@ from game_share_bot.core.keyboards import confirmation_kb, add_game_image_kb, re
 from game_share_bot.core.states import AddGameState
 from game_share_bot.domain.enums import AdminAction
 from game_share_bot.infrastructure.repositories import GameRepository
-from game_share_bot.infrastructure.utils import get_logger, format_game_text_full
+from game_share_bot.infrastructure.utils.logging import get_logger
+from game_share_bot.infrastructure.utils.formatting import format_game_text_full
 
 router = Router()
 logger = get_logger(__name__)

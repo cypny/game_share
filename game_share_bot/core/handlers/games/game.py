@@ -4,7 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import GameCallback
 from game_share_bot.infrastructure.repositories import GameRepository
-from game_share_bot.infrastructure.utils import format_game_full, get_logger
+from game_share_bot.infrastructure.utils import get_logger
+from game_share_bot.infrastructure.utils.formatting import format_game_full
 
 router = Router()
 logger = get_logger(__name__)
