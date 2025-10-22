@@ -1,7 +1,4 @@
-from domain.enums import RentalStatus
-
-from typing import TYPE_CHECKING
-
+from game_share_bot.domain.enums import RentalStatus
 
 
 def format_rented_disks_message(rentals: list["Rental"]) -> str:

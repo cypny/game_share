@@ -8,7 +8,7 @@ from game_share_bot.domain.enums import RentalStatus, DiscStatus, MenuSection
 from game_share_bot.infrastructure.models import Rental
 from game_share_bot.infrastructure.repositories import RentalRepository, DiscRepository
 from game_share_bot.infrastructure.utils import get_logger
-from infrastructure.utils.formatting import format_rented_disks_message
+from game_share_bot.infrastructure.utils.formatting import format_rented_disks_message
 
 router = Router()
 logger = get_logger(__name__)

@@ -130,54 +130,37 @@ async def take_game(callback: CallbackQuery, session: AsyncSession):
     logger.info(f"Пользователь {user_id} пытается взять игру {game_id}")
 
     try:
-        # Получаем репозитории
         game_repo = GameRepository(session)
         disc_repo = DiscRepository(session)
         rental_repo = RentalRepository(session)
         user_repo = UserRepository(session)
 
-        # Проверяем существование пользователя
         user = await user_repo.get_by_tg_id(user_id)
         if not user:
             await callback.answer("❌ Сначала нужно зарегистрироваться")
             return
 
-        # Проверяем, нет ли у пользователя уже активной аренды этой игры
         existing_rental = await rental_repo.get_active_rental_by_user_and_game(user.id, game_id)
         if existing_rental:
             await callback.answer("❌ У вас уже есть эта игра на руках")
             return
 
-        # Проверяем доступность дисков
         available_disc = await disc_repo.get_available_disc_by_game(game_id)
-        logger.info(f"Найден доступный диск: {available_disc}")
 
         if not available_disc:
             await callback.answer("❌ Все диски этой игры заняты")
             return
 
-        # Получаем информацию об игре
         game = await game_repo.get_by_id(game_id)
         if not game:
             await callback.answer("❌ Игра не найдена")
             return
 
-        logger.info(f"Создание аренды: user_id={user.id}, disc_id={available_disc.disc_id}")
-
-        # Создаем аренду и обновляем статус диска
         rental = await rental_repo.create_rental(user.id, available_disc.disc_id)
-        logger.info(f"Аренда создана: {rental.id}")
-
         result = await disc_repo.update_disc_status(available_disc.disc_id, DiscStatus.RENTED)
-        logger.info(f"Статус диска обновлен: {result}")
-
-        # Получаем обновленное количество доступных дисков
         available_discs_count = await disc_repo.get_available_discs_count_by_game(game_id)
 
-        logger.info(f"Пользователь {user_id} успешно взял игру {game_id} (диск {available_disc.disc_id})")
         await callback.answer(f"✅ Вы успешно взяли игру '{game.title}'!")
-
-        # Обновляем сообщение с актуальной информацией
         availability_text = f"✅ Вы уже взяли эту игру\n📀 Осталось дисков: {available_discs_count}"
 
         updated_reply = (
@@ -187,7 +170,6 @@ async def take_game(callback: CallbackQuery, session: AsyncSession):
             f"<code>/game_{game.id}</code>"
         )
 
-        # Проверяем, есть ли фото в сообщении
         if callback.message.photo:
             await callback.message.edit_caption(
                 caption=updated_reply,
@@ -205,3 +187,4 @@ async def take_game(callback: CallbackQuery, session: AsyncSession):
     except Exception as e:
         logger.error(f"Ошибка при взятии игры {game_id} пользователем {user_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при взятии игры")
+
