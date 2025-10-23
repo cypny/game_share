@@ -31,7 +31,7 @@ class TestStartHandlers:
                 patch('game_share_bot.core.handlers.start.main_menu') as mock_main_menu:
             mock_repo = AsyncMock()
             mock_repo_class.return_value = mock_repo
-            mock_repo.get_by_tg_id.return_value = AsyncMock()  # Существующий пользователь
+            mock_repo.get_by_tg_id.return_value = AsyncMock()
 
             from game_share_bot.core.handlers.start import cmd_start
             await cmd_start(mock_message, mock_session, mock_state)
@@ -45,15 +45,13 @@ class TestStartHandlers:
         with patch('game_share_bot.core.handlers.start.main_menu_kb') as mock_main_menu_kb:
             mock_main_menu_kb.return_value = "mock_main_menu_kb"
 
-            # Настраиваем мок сообщения
             mock_message_with_contact.from_user.id = 123
-            mock_message_with_contact.from_user.full_name = "testuser"  # Исправлено на lowercase
+            mock_message_with_contact.from_user.full_name = "testuser"
             mock_message_with_contact.contact.phone_number = "+1234567890"
 
             from game_share_bot.core.handlers.start import handle_phone_number
             await handle_phone_number(mock_message_with_contact, test_session, mock_state)
 
-            # Проверяем, что пользователь действительно сохранен в БД
             from game_share_bot.infrastructure.repositories.user import UserRepository
             user_repo = UserRepository(test_session)
             saved_user = await user_repo.get_by_tg_id(123)
@@ -61,9 +59,8 @@ class TestStartHandlers:
             assert saved_user is not None
             assert saved_user.tg_id == 123
             assert saved_user.phone == "+1234567890"
-            assert saved_user.name == "testuser"  # Проверяем, что имя сохранилось правильно
+            assert saved_user.name == "testuser"
 
-            # Проверяем вызовы UI
             mock_state.clear.assert_called_once()
             mock_message_with_contact.answer.assert_any_call(
                 "✅ Номер +1234567890 сохранён! Регистрация завершена.",
@@ -79,7 +76,7 @@ class TestStartHandlers:
         with patch('game_share_bot.core.handlers.start.UserRepository') as mock_repo_class:
             mock_repo = AsyncMock()
             mock_repo_class.return_value = mock_repo
-            mock_repo.try_create.return_value = None  # Ошибка при создании
+            mock_repo.try_create.return_value = None
 
             from game_share_bot.core.handlers.start import handle_phone_number
             await handle_phone_number(mock_message_with_contact, mock_session, mock_state)

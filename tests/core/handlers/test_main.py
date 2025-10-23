@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, AsyncMock
 
+
 class TestMainMenuHandlers:
     @pytest.mark.asyncio
     async def test_main_menu_from_message(self, mock_message, mock_state):
