@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from sqlalchemy import BigInteger, Numeric, Text, String
+from sqlalchemy import BigInteger, Numeric, Text, String, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -11,8 +11,8 @@ from game_share_bot.infrastructure.models.base import Base
 class SubscriptionPlan(Base):
     __tablename__ = "subscription_plans"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
     )
 
     name: Mapped[str] = mapped_column(String(20), nullable=False)
