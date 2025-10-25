@@ -1,8 +1,9 @@
-from .rental.disc import Disc
-from .rental.disc_status import DiscStatus
-from .rental.rental_status import RentalStatus
-from .subscription.subscription import Subscription
-from .subscription.subscription_plan import SubscriptionPlan
+from .rental import Disc
+from .rental import DiscStatus
+from .rental import RentalStatus
+from .rental import QueueEntry
+from .subscription import Subscription
+from .subscription import SubscriptionPlan
 from .base import Base
 from .game import Game
 from .rental.rental import Rental
@@ -17,5 +18,6 @@ __all__ = [
     'Rental',
     'RentalStatus',
     'Subscription',
-    'SubscriptionPlan'
+    'SubscriptionPlan',
+    'QueueEntry'
 ]

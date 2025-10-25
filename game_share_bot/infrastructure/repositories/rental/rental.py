@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -16,7 +18,7 @@ class RentalRepository(BaseRepository[Rental]):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
 
-    async def create_rental(self, user_id: int, disc_id: int) -> Rental:
+    async def create_rental(self, user_id: uuid.UUID, disc_id: int) -> Rental:
         """Создает новую запись об аренде диска"""
         now = datetime.utcnow()
         rental_data = {

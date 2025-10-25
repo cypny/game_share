@@ -1,4 +1,7 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from game_share_bot.infrastructure.models import Game
 from .base import BaseRepository
@@ -22,3 +25,6 @@ class GameRepository(BaseRepository[Game]):
             description=description,
             cover_image_url=image
         )
+
+    async def get_by_id(self, game_id:int, options = None) -> Game | None:
+        return await super().get_by_id(game_id, options = [joinedload(Game.categories)])

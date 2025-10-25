@@ -21,16 +21,20 @@ class BaseRepository(Generic[ModelType]):
         """Получить имя первичного ключа модели."""
         return inspect(self.model).primary_key[0].name
 
-    async def get_by_id(self, model_id: Any) -> ModelType | None:
+    async def get_by_id(self, model_id: Any, options = None) -> ModelType | None:
         """Получить запись по ID."""
+        if options is None:
+            options = []
         pk_name = self._get_primary_key_name()
         return await self.session.scalar(
-            select(self.model).where(getattr(self.model, pk_name) == model_id)
+            select(self.model).options(*options).where(getattr(self.model, pk_name) == model_id)
         )
 
-    async def get_all(self) -> list[ModelType]:
+    async def get_all(self, options = None) -> list[ModelType]:
         """Получить все записи."""
-        result = await self.session.execute(select(self.model))
+        if not options:
+            options = []
+        result = await self.session.execute(select(self.model).options(*options))
         return result.scalars().all()
 
     async def create(self, **data) -> ModelType:

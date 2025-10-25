@@ -1,9 +1,9 @@
 from .admin import AdminCallback
-from .catalog import CatalogCallback
+from .games.catalog import CatalogCallback
 from .confirmation import ConfirmationCallback
-from .game import GameCallback
+from .games.game import GameCallback
 from .menu import MenuCallback
-from .rental import RentalCallback
+from .rental.rental import RentalCallback
 from .subscription import SubscriptionCallback
 from .user import UserCallback
 

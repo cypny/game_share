@@ -1,63 +1,132 @@
 from aiogram import Router, F, types
-from aiogram.types import CallbackQuery
+from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import GameCallback
-from game_share_bot.infrastructure.repositories import GameRepository
-from game_share_bot.infrastructure.utils import get_logger
+from game_share_bot.domain.enums import DiscStatus
+from game_share_bot.domain.enums.actions.game_actions import GameAction
+from game_share_bot.domain.rental.queue import get_entry_position
+from game_share_bot.infrastructure.repositories.rental.queue_entry import QueueEntryRepository
 from game_share_bot.infrastructure.utils.formatting import format_game_full
+from game_share_bot.core.keyboards import get_game_detail_kb
+from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
+from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()
 logger = get_logger(__name__)
 
 
-@router.callback_query(GameCallback.filter(F.action == "open"))
-async def open_game_page(callback: CallbackQuery, callback_data: GameCallback, session: AsyncSession):
-    user_id = callback.from_user.id
-    logger.info(f"Пользователь {user_id} запросил информацию об игре: {callback_data.game_id}")
+@router.message(F.text.startswith("/game_"))
+async def cmd_game(message: Message, session: AsyncSession):
+    tg_id = message.from_user.id
+    logger.info(f"Пользователь {tg_id} запросил информацию об игре: {message.text}")
 
     try:
         game_repo = GameRepository(session)
-        game_id = callback_data.game_id
+        disc_repo = DiscRepository(session)
+        user_repo = UserRepository(session)
+        queue_repo = QueueEntryRepository(session)
 
+        game_id = int(message.text.split('_')[1])
         logger.debug(f"Поиск игры с ID: {game_id}")
 
         game = await game_repo.get_by_id(game_id)
         if game is None:
-            logger.warning(f"Игра {game_id} не найдена для пользователя {user_id}")
-            await callback.answer("Игра не найдена")
+            logger.warning(f"Игра {game_id} не найдена для пользователя {tg_id}")
+            await message.answer("Игра не найдена")
             return
 
-        reply = format_game_full(game)
-        await callback.message.answer_photo(
-            caption=reply,
-            parse_mode="HTML",
-            photo=game.cover_image_url
-        )
-        logger.info(f"Информация об игре {game_id} отправлена пользователю {user_id}")
-        return
+        user = await user_repo.get_by_tg_id(tg_id)
+        available_discs_count = await disc_repo.get_available_discs_count_by_game(game_id)
 
-    except ValueError:
-        logger.warning(f"Неверный формат ID игры от пользователя {user_id}: {callback.message.text}")
-        await callback.answer("❌ Неверный формат команды")
-    except Exception as e:
-        logger.error(f"Ошибка при получении информации об игре для пользователя {user_id}: {str(e)}", exc_info=True)
-        await callback.answer("❌ Ошибка при загрузке информации об игре")
+        queue_entries = await queue_repo.get_queue_entries_for_game(game_id)
+        queue_position = get_entry_position(game_id, user.id, queue_entries)
+        already_in_queue = queue_position is not None
 
+        is_available = available_discs_count > 0
 
-@router.message()
-async def search_game(message: types.Message, session: AsyncSession):
-    game_repo = GameRepository(session)
+        reply = format_game_full(game, available_discs_count, queue_position)
 
-    text = message.text
-    for game in await game_repo.get_all():
-        if text.lower() in game.title.lower():
-            reply = format_game_full(game)
-
+        if game.cover_image_url:
             await message.answer_photo(
+                photo=game.cover_image_url,
                 caption=reply,
                 parse_mode="HTML",
-                photo=game.cover_image_url
+                reply_markup=get_game_detail_kb(game.id, is_available and not already_in_queue)
             )
+        else:
+            await message.answer(
+                reply,
+                parse_mode="HTML",
+                reply_markup=get_game_detail_kb(game.id, is_available and not already_in_queue)
+            )
+
+        logger.info(f"Информация об игре {game_id} отправлена пользователю {tg_id}")
+    except Exception as e:
+        logger.error(f"Ошибка при получении информации об игре для пользователя {tg_id}: {str(e)}", exc_info=True)
+        await message.answer("❌ Ошибка при загрузке информации об игре")
+
+@router.callback_query(GameCallback.filter_by_action(GameAction.REQUEST_QUEUE))
+async def take_game(callback: CallbackQuery, callback_data: GameCallback, session: AsyncSession):
+    """Обработчик кнопки 'Взять игру' на странице игры"""
+    tg_id = callback.from_user.id
+    game_id = callback_data.game_id
+
+    logger.info(f"Пользователь {tg_id} пытается взять игру {game_id}")
+
+    try:
+        game_repo = GameRepository(session)
+        disc_repo = DiscRepository(session)
+        rental_repo = RentalRepository(session)
+        user_repo = UserRepository(session)
+        queue_repo = QueueEntryRepository(session)
+
+        user = await user_repo.get_by_tg_id(tg_id)
+        if not user:
+            await callback.answer("❌ Сначала нужно зарегистрироваться")
             return
-    await message.answer("Не найдено")
+
+        existing_queue_entry = await queue_repo.get_active_user_queue_entries_for_game(user.id, game_id)
+        if existing_queue_entry:
+            await callback.answer("❌ Вы уже стоите в очереди за этой игрой")
+            return
+
+        available_disc = await disc_repo.get_available_disc_by_game(game_id)
+
+        if not available_disc:
+            await callback.answer("❌ Все диски этой игры заняты")
+            return
+
+        game = await game_repo.get_by_id(game_id)
+        if not game:
+            await callback.answer("❌ Игра не найдена")
+            return
+
+        new_entry = await queue_repo.create_queue_entry(user.id, available_disc.disc_id)
+        logger.info(f"{new_entry}")
+        # result = await disc_repo.update_disc_status(available_disc.disc_id, DiscStatus.RENTED)
+        available_discs_count = await disc_repo.get_available_discs_count_by_game(game_id)
+
+        await callback.answer(f"✅ Вы успешно взяли игру '{game.title}'!")
+
+        entries = await queue_repo.get_queue_entries_for_game(game_id)
+        queue_position = get_entry_position(game_id, user.id, entries)
+        updated_reply = (format_game_full(game, available_discs_count, queue_position))
+
+        if callback.message.photo:
+            await callback.message.edit_caption(
+                caption=updated_reply,
+                parse_mode="HTML",
+                reply_markup=get_game_detail_kb(game.id, False)
+                # is_available = False, так как пользователь уже взял игру
+            )
+        else:
+            await callback.message.edit_text(
+                updated_reply,
+                parse_mode="HTML",
+                reply_markup=get_game_detail_kb(game.id, False)
+            )
+
+    except Exception as e:
+        logger.error(f"Ошибка при взятии игры {game_id} пользователем {tg_id}: {str(e)}", exc_info=True)
+        await callback.answer("❌ Ошибка при взятии игры")
