@@ -39,6 +39,7 @@ def setup_logging():
     logging.getLogger('aiogram').setLevel(logging.INFO)
     logging.getLogger('sqlalchemy').setLevel(logging.WARNING)
     logging.getLogger('asyncio').setLevel(logging.INFO)
+    logging.getLogger('apscheduler').setLevel(logging.INFO)
 
 
 def get_logger(name: str) -> logging.Logger:

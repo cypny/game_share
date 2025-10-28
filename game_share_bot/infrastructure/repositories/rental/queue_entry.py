@@ -96,7 +96,7 @@ class QueueEntryRepository(BaseRepository[QueueEntry]):
                 position_expr,
                 total_expr
             )
-            .where(QueueEntry.user_id == user_id, QueueEntry.is_active == True)
+            .where(QueueEntry.is_active == True)
             .options(
                 joinedload(QueueEntry.disc).joinedload(Disc.game)
             )
@@ -105,16 +105,20 @@ class QueueEntryRepository(BaseRepository[QueueEntry]):
 
         result = await self.session.execute(query)
         rows = result.all()
+        filtered_rows = [
+            row for row in rows
+            if row[0].user_id == user_id
+        ]
 
         return [
             QueueFullInfo(
-                queue_entry=row.QueueEntry,
-                position=row.position,
-                total_in_queue=row.total_in_queue,
-                game=row.QueueEntry.disc.game,
-                disc=row.QueueEntry.disc
+                queue_entry=row[0],
+                position=row[1],
+                total_in_queue=row[2],
+                game=row[0].disc.game,
+                disc=row[0].disc
             )
-            for row in rows
+            for row in filtered_rows
         ]
 
     async def get_queue_position(self, queue_entry: QueueEntry) -> int:

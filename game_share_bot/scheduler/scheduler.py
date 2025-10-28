@@ -1,0 +1,22 @@
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
+from .global_vars import job_container
+from .job_list import JOBS
+
+
+
+def get_scheduler(
+        db_conn_string_sync: str,
+        bot,
+        session_maker: async_sessionmaker) -> AsyncIOScheduler:
+    job_container.init(session_maker, bot)
+    jobstores = {"default": SQLAlchemyJobStore(url=db_conn_string_sync)}
+    scheduler = AsyncIOScheduler(jobstores=jobstores)
+
+    for job in JOBS:
+        func = job["func"]
+        scheduler.add_job(func, replace_existing=True, **{k: v for k, v in job.items() if k != "func"})
+
+    return scheduler
