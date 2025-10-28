@@ -95,9 +95,10 @@ async def confirm_subscription_buy(
 
 @router.callback_query(SubscriptionCallback.filter(F.action == SubscriptionAction.BUY))
 async def purchase_subscription(callback: CallbackQuery, callback_data: SubscriptionCallback, state: FSMContext):
+    sub_data = await state.get_data()
     await callback.answer()
     await callback.message.edit_text(
-        text=f"Пока не реализовано: подписка {callback_data.subscription_type} {callback_data.month_duration} месяцев",
+        text=f"Пока не реализовано: подписка {sub_data['plan_name']} {sub_data['duration']} месяцев",
         reply_markup=return_kb(SubscriptionCallback(action=SubscriptionAction.INFO)),
     )
 

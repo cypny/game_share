@@ -1,12 +1,12 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from game_share_bot.core.callbacks import AdminCallback, GameCallback
+from game_share_bot.core.callbacks import GameCallback, MenuCallback
 from game_share_bot.core.keyboards.inline.buttons import return_button
-from game_share_bot.domain.enums import AdminAction
+from game_share_bot.domain.enums import MenuSection
 from game_share_bot.domain.enums.actions.game_actions import GameAction
 
 
-def get_game_detail_kb(game_id: int, is_available: bool = True) -> InlineKeyboardMarkup:
+def enter_queue_kb(game_id: int, is_available: bool = True) -> InlineKeyboardMarkup:
     """Клавиатура для страницы конкретной игры"""
     buttons = []
 
@@ -18,16 +18,6 @@ def get_game_detail_kb(game_id: int, is_available: bool = True) -> InlineKeyboar
             )
         ])
 
+    buttons.append([return_button(MenuCallback(section=MenuSection.MAIN))])
+
     return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
-def add_game_image_kb() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                return_button(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL)),
-                InlineKeyboardButton(text="Пропустить",
-                                     callback_data=AdminCallback(action=AdminAction.SKIP_IMAGE_INPUT).pack())
-            ]
-        ]
-    )

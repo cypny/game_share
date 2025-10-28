@@ -43,9 +43,3 @@ async def personal_cabinet(callback: CallbackQuery, session: AsyncSession, state
 async def manage_subscription(callback: CallbackQuery):
     """Обработчик кнопки 'Управление подпиской'"""
     await callback.answer("📦 Функционал 'Управление подпиской' в разработке")
-
-
-@router.callback_query(MenuCallback.filter_by_section(MenuSection.QUEUE))
-async def my_queue(callback: CallbackQuery):
-    """Обрабатывает кнопку просмотра очереди"""
-    await callback.answer("📋 Функционал 'Моя очередь' в разработке")

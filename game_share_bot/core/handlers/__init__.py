@@ -10,22 +10,35 @@ from .menu.main import router as main_menu_router
 from .menu.personal_cabinet import router as personal_cabinet_router
 from .menu.rented_disks import router as rented_disks_router
 from .start import router as start_router
+from .user.queue import router as queue_router
 from .user.subscription import router as user_subscription_router
 
 routers = [
+    # Стартовые и основные
+    start_router,
+    main_menu_router,
+
+    # Каталог игр
+    catalog_router,
+    game_router,
+
+    # Личный кабинет
+    personal_cabinet_router,
+    rented_disks_router,
+
+    # Подписки и очередь
+    user_subscription_router,
+    queue_router,
+
+    # Админ панель
     admin_panel_router,
     admin_appoint_router,
     admin_add_game_router,
     admin_delete_game_router,
     admin_return_requests_router,
+
+    # Отладка
     debug_router,
-    main_menu_router,
-    personal_cabinet_router,
-    rented_disks_router,
-    start_router,
-    catalog_router,
-    game_router,
-    user_subscription_router,
 ]
 
 __all__ = ['routers']

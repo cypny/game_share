@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from game_share_bot.core.callbacks import MenuCallback, SubscriptionCallback
 from game_share_bot.core.keyboards.inline.buttons import return_button
-from game_share_bot.domain.enums import MenuSection, SubscriptionAction, SubscriptionType
+from game_share_bot.domain.enums import MenuSection, SubscriptionAction
 
 
 def subscription_actions_kb(plan_infos) -> InlineKeyboardMarkup:

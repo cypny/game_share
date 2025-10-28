@@ -3,11 +3,11 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import CatalogCallback, MenuCallback
-from game_share_bot.core.keyboards import return_kb, get_game_detail_kb
-from game_share_bot.domain.enums import MenuSection, DiscStatus
-from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
+from game_share_bot.core.keyboards import return_kb
+from game_share_bot.domain.enums import MenuSection
+from game_share_bot.infrastructure.repositories import GameRepository
 from game_share_bot.infrastructure.utils import get_logger
-from game_share_bot.infrastructure.utils.formatting import format_game_full, format_games_list
+from game_share_bot.infrastructure.utils.formatting import format_games_list
 
 router = Router()
 logger = get_logger(__name__)

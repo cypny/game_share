@@ -3,12 +3,11 @@ from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import GameCallback
-from game_share_bot.domain.enums import DiscStatus
 from game_share_bot.domain.enums.actions.game_actions import GameAction
 from game_share_bot.domain.rental.queue import get_entry_position
 from game_share_bot.infrastructure.repositories.rental.queue_entry import QueueEntryRepository
 from game_share_bot.infrastructure.utils.formatting import format_game_full
-from game_share_bot.core.keyboards import get_game_detail_kb
+from game_share_bot.core.keyboards import enter_queue_kb
 from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 
@@ -52,13 +51,13 @@ async def cmd_game(message: Message, session: AsyncSession):
                 photo=game.cover_image_url,
                 caption=reply,
                 parse_mode="HTML",
-                reply_markup=get_game_detail_kb(game.id, is_available and not already_in_queue)
+                reply_markup=enter_queue_kb(game.id, is_available and not already_in_queue)
             )
         else:
             await message.answer(
                 reply,
                 parse_mode="HTML",
-                reply_markup=get_game_detail_kb(game.id, is_available and not already_in_queue)
+                reply_markup=enter_queue_kb(game.id, is_available and not already_in_queue)
             )
 
         logger.info(f"Информация об игре {game_id} отправлена пользователю {tg_id}")
@@ -67,7 +66,7 @@ async def cmd_game(message: Message, session: AsyncSession):
         await message.answer("❌ Ошибка при загрузке информации об игре")
 
 @router.callback_query(GameCallback.filter_by_action(GameAction.REQUEST_QUEUE))
-async def take_game(callback: CallbackQuery, callback_data: GameCallback, session: AsyncSession):
+async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback, session: AsyncSession):
     """Обработчик кнопки 'Взять игру' на странице игры"""
     tg_id = callback.from_user.id
     game_id = callback_data.game_id
@@ -77,7 +76,6 @@ async def take_game(callback: CallbackQuery, callback_data: GameCallback, sessio
     try:
         game_repo = GameRepository(session)
         disc_repo = DiscRepository(session)
-        rental_repo = RentalRepository(session)
         user_repo = UserRepository(session)
         queue_repo = QueueEntryRepository(session)
 
@@ -111,20 +109,20 @@ async def take_game(callback: CallbackQuery, callback_data: GameCallback, sessio
 
         entries = await queue_repo.get_queue_entries_for_game(game_id)
         queue_position = get_entry_position(game_id, user.id, entries)
-        updated_reply = (format_game_full(game, available_discs_count, queue_position))
+        updated_reply = format_game_full(game, available_discs_count, queue_position)
 
         if callback.message.photo:
             await callback.message.edit_caption(
                 caption=updated_reply,
                 parse_mode="HTML",
-                reply_markup=get_game_detail_kb(game.id, False)
+                reply_markup=enter_queue_kb(game.id, False)
                 # is_available = False, так как пользователь уже взял игру
             )
         else:
             await callback.message.edit_text(
                 updated_reply,
                 parse_mode="HTML",
-                reply_markup=get_game_detail_kb(game.id, False)
+                reply_markup=enter_queue_kb(game.id, False)
             )
 
     except Exception as e:
