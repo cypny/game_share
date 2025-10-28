@@ -16,7 +16,6 @@ class TestTakeGameHandlers:
                 patch('game_share_bot.core.handlers.games.catalog.RentalRepository') as mock_rental_repo_class, \
                 patch('game_share_bot.core.handlers.games.catalog.UserRepository') as mock_user_repo_class, \
                 patch('game_share_bot.core.handlers.games.catalog.get_game_detail_kb') as mock_kb:
-            # Настраиваем моки
             mock_game_repo = AsyncMock()
             mock_disc_repo = AsyncMock()
             mock_rental_repo = AsyncMock()
