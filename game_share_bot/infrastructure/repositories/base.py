@@ -1,6 +1,6 @@
 from typing import TypeVar, Generic, Type, Any
 
-from sqlalchemy import select, update, delete, inspect
+from sqlalchemy import select, update, delete, inspect, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.infrastructure.models.base import Base
@@ -30,11 +30,14 @@ class BaseRepository(Generic[ModelType]):
             select(self.model).options(*options).where(getattr(self.model, pk_name) == model_id)
         )
 
-    async def get_all(self, options = None) -> list[ModelType]:
+    async def get_all(self, options = None, skip=0, take=20) -> list[ModelType]:
         """Получить все записи."""
         if not options:
             options = []
-        result = await self.session.execute(select(self.model).options(*options))
+
+        query = select(self.model).options(*options)
+        query = query.offset(skip).limit(take)
+        result = await self.session.execute(query)
         return result.scalars().all()
 
     async def create(self, **data) -> ModelType:
@@ -82,4 +85,9 @@ class BaseRepository(Generic[ModelType]):
         stmt = select(self.model).where(field == value)
         result = await self.session.execute(stmt)
         return result.scalars().all()
+
+    async def count_all(self) -> int:
+        """Считает все строки в таблице."""
+        stmt = select(func.count()).select_from(self.model)
+        return await self.session.scalar(stmt)
 

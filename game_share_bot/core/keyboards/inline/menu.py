@@ -52,3 +52,49 @@ def rentals_kb(rentals: list[Rental]) -> InlineKeyboardMarkup:
     ])
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
+
+
+def catalog_keyboard(current_page: int, total_games: int, page_size: int) -> InlineKeyboardMarkup:
+    """Клавиатура для каталога с пагинацией"""
+    total_pages = (total_games + page_size - 1) // page_size
+    buttons = []
+
+    # Кнопки пагинации
+    pagination_buttons = []
+
+    if current_page > 0:
+        pagination_buttons.append(
+            InlineKeyboardButton(
+                text="⬅️ Назад",
+                callback_data=CatalogCallback(page=current_page - 1).pack()
+            )
+        )
+
+    # Информация о странице
+    pagination_buttons.append(
+        InlineKeyboardButton(
+            text=f"{current_page + 1}/{total_pages}",
+            callback_data="no_action"
+        )
+    )
+
+    if current_page < total_pages - 1:
+        pagination_buttons.append(
+            InlineKeyboardButton(
+                text="Вперед ➡️",
+                callback_data=CatalogCallback(page=current_page + 1).pack()
+            )
+        )
+
+    if pagination_buttons:
+        buttons.append(pagination_buttons)
+
+    # Кнопка возврата
+    buttons.append([
+        InlineKeyboardButton(
+            text="◀️ В главное меню",
+            callback_data=MenuCallback(section=MenuSection.MAIN).pack()
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
