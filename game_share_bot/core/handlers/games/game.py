@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from game_share_bot.core.callbacks import GameCallback
 from game_share_bot.domain.enums.actions.game_actions import GameAction
 from game_share_bot.domain.rental.queue import get_entry_position
+from game_share_bot.infrastructure.models import User
 from game_share_bot.infrastructure.repositories.rental.queue_entry import QueueEntryRepository
 from game_share_bot.infrastructure.utils.formatting import format_game_full
 from game_share_bot.core.keyboards import enter_queue_kb
@@ -84,6 +85,11 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
             await callback.answer("❌ Сначала нужно зарегистрироваться")
             return
 
+        message =await _can_enter_queue(user)
+        if message:
+            await callback.answer(message)
+            return
+
         existing_queue_entry = await queue_repo.get_active_user_queue_entries_for_game(user.id, game_id)
         if existing_queue_entry:
             await callback.answer("❌ Вы уже стоите в очереди за этой игрой")
@@ -128,3 +134,12 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
     except Exception as e:
         logger.error(f"Ошибка при взятии игры {game_id} пользователем {tg_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при взятии игры")
+
+async def _can_enter_queue(user: User) -> str:
+    if not user.subscription:
+        return "У вас нет подписки"
+    sub_plan = user.subscription.plan
+    if len(user.rentals) >= sub_plan.max_simultaneous_rental:
+        return f"Исчерпан лимит дисков ({len(user.rentals)}) для подписки {sub_plan.name}"
+
+    return None

@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 
-from game_share_bot.infrastructure.models import User
+from game_share_bot.infrastructure.models import User, Subscription
 from .base import BaseRepository
 
 
@@ -22,7 +23,13 @@ class UserRepository(BaseRepository[User]):
         )
 
     async def get_by_tg_id(self, tg_id: int) -> User | None:
-        return await self.get_by_field("tg_id", tg_id)
+        return await self.get_by_field(
+            "tg_id",
+            tg_id,
+            options=[
+                selectinload(User.subscription).selectinload(Subscription.plan),
+                selectinload(User.rentals)
+            ])
 
     async def get_by_phone(self, phone: str) -> User | None:
         return await self.get_by_field("phone", phone)
