@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from game_share_bot.infrastructure.models import Rental, Disc, User, Game
 from game_share_bot.domain.enums.rental_status import RentalStatus
@@ -20,7 +20,7 @@ class RentalRepository(BaseRepository[Rental]):
 
     async def create_rental(self, user_id: uuid.UUID, disc_id: int) -> Rental:
         """Создает новую запись об аренде диска"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         rental_data = {
             "user_id": user_id,
             "disc_id": disc_id,
@@ -112,7 +112,7 @@ class RentalRepository(BaseRepository[Rental]):
 
         rental.status_id = status
         if status == RentalStatus.COMPLETED:
-            rental.actual_end_date = datetime.utcnow()
+            rental.actual_end_date = datetime.now(timezone.utc)
 
         await self.session.commit()
         return True
@@ -124,7 +124,7 @@ class RentalRepository(BaseRepository[Rental]):
             return False
 
         rental.status_id = RentalStatus.COMPLETED
-        rental.actual_end_date = datetime.utcnow()
+        rental.actual_end_date = datetime.now(timezone.utc)
 
         # Обновляем статус диска на доступный
         rental.disc.status_id = DiscStatus.AVAILABLE
