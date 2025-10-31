@@ -3,6 +3,7 @@ from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import GameCallback
+from game_share_bot.domain.enums import RentalStatus
 from game_share_bot.domain.enums.actions.game_actions import GameAction
 from game_share_bot.domain.rental.queue import get_entry_position
 from game_share_bot.infrastructure.models import User
@@ -15,7 +16,7 @@ from game_share_bot.infrastructure.utils import get_logger
 router = Router()
 logger = get_logger(__name__)
 
-
+#TODO: отрефакторить это чудо
 @router.message(F.text.startswith("/game_"))
 async def cmd_game(message: Message, session: AsyncSession):
     tg_id = message.from_user.id
@@ -41,24 +42,38 @@ async def cmd_game(message: Message, session: AsyncSession):
         game = await game_repo.get_by_id(game_id)
         queue_entries = game.queues
         queue_position = get_entry_position(user.id, queue_entries)
-        already_in_queue = queue_position is not None
+        has_rental_this_game = [
+            r for r in user.rentals
+            if r.disc.game_id == game_id and r.status_id != RentalStatus.COMPLETED
+        ]
 
-        is_available = available_discs_count > 0
+        is_available = (available_discs_count > 0 and
+                        queue_position is None and
+                        not has_rental_this_game)
 
-        reply = format_game_full(game, available_discs_count, queue_position)
+        availability_text = "Вы можете встать в очередь"
+        if available_discs_count <= 0:
+            availability_text = "Нет свободных дисков"
+        if queue_position is not None:
+            availability_text = "Вы уже стоите в этой очереди"
+        if has_rental_this_game:
+            availability_text = "Вы уже арендовали эту игру"
+
+
+        reply = format_game_full(game, available_discs_count, queue_position, availability_text)
 
         if game.cover_image_url:
             await message.answer_photo(
                 photo=game.cover_image_url,
                 caption=reply,
                 parse_mode="HTML",
-                reply_markup=enter_queue_kb(game.id, is_available and not already_in_queue)
+                reply_markup=enter_queue_kb(game.id, is_available)
             )
         else:
             await message.answer(
                 reply,
                 parse_mode="HTML",
-                reply_markup=enter_queue_kb(game.id, is_available and not already_in_queue)
+                reply_markup=enter_queue_kb(game.id, is_available)
             )
 
         logger.info(f"Информация об игре {game_id} отправлена пользователю {tg_id}")
@@ -90,8 +105,12 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
             await callback.answer(message)
             return
 
-        existing_queue_entry = next((entry for entry in user.queues if entry.game_id == game_id), None)
-        if existing_queue_entry:
+        existing_active_queue_entry = next(
+            (entry for entry in user.queues
+                 if entry.game_id == game_id and entry.is_active),
+            None
+        )
+        if existing_active_queue_entry:
             await callback.answer("❌ Вы уже стоите в очереди за этой игрой")
             return
 
@@ -115,7 +134,19 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
 
         entries = game.queues
         queue_position = get_entry_position(user.id, entries)
-        updated_reply = format_game_full(game, available_discs_count, queue_position)
+
+        has_rental_this_game = [
+            r for r in user.rentals
+            if r.disc.game_id == game_id and r.status_id != RentalStatus.COMPLETED
+        ]
+
+        is_available = (available_discs_count > 0 and
+                        queue_position is None and
+                        not has_rental_this_game)
+
+        availability_text = "Вы уже стоите в этой очереди"
+
+        updated_reply = format_game_full(game, available_discs_count, queue_position, availability_text)
 
         if callback.message.photo:
             await callback.message.edit_caption(

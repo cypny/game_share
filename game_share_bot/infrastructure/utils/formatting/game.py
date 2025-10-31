@@ -11,11 +11,15 @@ def format_game_short(game: Game) -> str:
     text += f"/game_{game.id}"
     return text
 
-def format_game_full(game: Game, available_discs_count: int, user_queue_position: Optional[int]) -> str:
+def format_game_full(
+        game: Game,
+        available_discs_count: int,
+        user_queue_position: int | None,
+        availability_text) -> str:
     if user_queue_position is not None:
         queue_status_text = f"Ваша позиция в очереди: {user_queue_position}"
     else:
-        queue_status_text = f"Вы не стоите в очереди за игрой"
+        queue_status_text = availability_text
 
     if available_discs_count > 0:
         availability_text = f"✅ Доступно дисков: {available_discs_count}"

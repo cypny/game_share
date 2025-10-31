@@ -3,6 +3,7 @@ from .admin.appoint import router as admin_appoint_router
 from .admin.delete_game import router as admin_delete_game_router
 from .admin.main_panel import router as admin_panel_router
 from .admin.return_requests import router as admin_return_requests_router
+from .admin.take_requests import router as admin_rental_router
 from .debug import router as debug_router
 from .games.catalog import router as catalog_router
 from .games.game import router as game_router
@@ -36,6 +37,7 @@ routers = [
     admin_add_game_router,
     admin_delete_game_router,
     admin_return_requests_router,
+    admin_rental_router,
 
     # Отладка
     debug_router,

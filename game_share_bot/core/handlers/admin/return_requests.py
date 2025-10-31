@@ -3,8 +3,8 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import AdminCallback, RentalCallback
-from game_share_bot.core.keyboards import return_to_admin_panel_kb, returns_confirmation_kb
-from game_share_bot.domain.enums import AdminAction
+from game_share_bot.core.keyboards import return_to_admin_panel_kb, rental_actions_confirmation_kb
+from game_share_bot.domain.enums import AdminAction, RentalStatus
 from game_share_bot.infrastructure.models import Rental
 from game_share_bot.infrastructure.repositories import RentalRepository
 from game_share_bot.infrastructure.utils import get_logger
@@ -20,7 +20,7 @@ def _format_pending_returns_message(rentals: list[Rental]) -> str:
 
     returns_list = []
     for rental in rentals:
-        user_info = f"👤 {rental.user.name} (ID: {rental.user.tg_id})"
+        user_info = f"👤 @{rental.user.name} (ID: {rental.user.tg_id})"
         game_info = f"🎮 {rental.disc.game.title} - Диск {rental.disc.disc_id}"
         return_info = f"📅 Начало аренды: {rental.start_date.strftime('%d.%m.%Y')}"
 
@@ -39,10 +39,10 @@ async def show_return_requests(callback: CallbackQuery, session: AsyncSession):
 
     try:
         rental_repo = RentalRepository(session)
-        pending_returns = await rental_repo.get_pending_return_rentals()
+        pending_returns = await rental_repo.get_rentals_by_status(RentalStatus.PENDING_RETURN)
 
         text = _format_pending_returns_message(pending_returns)
-        markup = returns_confirmation_kb(pending_returns) if pending_returns else return_to_admin_panel_kb()
+        markup = rental_actions_confirmation_kb(pending_returns, "return") if pending_returns else return_to_admin_panel_kb()
 
         await callback.message.edit_text(text, reply_markup=markup)
         logger.info(f"Список запросов на возврат отправлен администратору {user_id}")

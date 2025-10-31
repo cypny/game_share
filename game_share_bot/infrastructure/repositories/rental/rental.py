@@ -18,6 +18,9 @@ class RentalRepository(BaseRepository[Rental]):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
 
+    async def get_by_id(self, id: int, options = None) -> Rental:
+        return await super().get_by_id(id, options=[selectinload(Rental.disc).selectinload(Disc.game)])
+
     async def create_rental(self, user_id: uuid.UUID, disc_id: int) -> Rental:
         """Создает новую запись об аренде диска"""
         now = datetime.now(timezone.utc)
@@ -65,8 +68,7 @@ class RentalRepository(BaseRepository[Rental]):
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_pending_return_rentals(self) -> list[Rental]:
-        """Возвращает все аренды, ожидающие подтверждения возврата"""
+    async def get_rentals_by_status(self, status: RentalStatus) -> list[Rental]:
         stmt = (
             select(Rental)
             .join(User, Rental.user_id == User.id)
@@ -76,7 +78,7 @@ class RentalRepository(BaseRepository[Rental]):
                 selectinload(Rental.user),
                 selectinload(Rental.disc).selectinload(Disc.game)
             )
-            .where(Rental.status_id == RentalStatus.PENDING_RETURN)
+            .where(Rental.status_id == status)
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
@@ -139,6 +141,33 @@ class RentalRepository(BaseRepository[Rental]):
             return False
 
         rental.status_id = RentalStatus.ACTIVE
+        rental.disc.status_id = DiscStatus.RENTED
+
+        await self.session.commit()
+        return True
+
+    async def confirm_take(self, rental_id: int) -> bool:
+        """Подтверждает взятие аренды администратором"""
+        rental = await self.get_by_id_with_disc(rental_id)
+        if not rental:
+            return False
+
+        rental.status_id = RentalStatus.ACTIVE
+        rental.start_date = datetime.now(timezone.utc)
+
+        # Обновляем статус диска на доступный
+        rental.disc.status_id = DiscStatus.RENTED
+
+        await self.session.commit()
+        return True
+
+    async def reject_take(self, rental_id: int) -> bool:
+        """Отклоняет возврат аренды (возвращает в активный статус)"""
+        rental = await self.get_by_id_with_disc(rental_id)
+        if not rental:
+            return False
+
+        rental.status_id = RentalStatus.PENDING_TAKE
         rental.disc.status_id = DiscStatus.RENTED
 
         await self.session.commit()
