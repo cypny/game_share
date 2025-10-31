@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from game_share_bot.infrastructure.models import User, Subscription
+from game_share_bot.infrastructure.models import User, Subscription, Rental
 from .base import BaseRepository
 
 
@@ -28,7 +28,8 @@ class UserRepository(BaseRepository[User]):
             tg_id,
             options=[
                 selectinload(User.subscription).selectinload(Subscription.plan),
-                selectinload(User.rentals)
+                selectinload(User.rentals),
+                selectinload (User.queues)
             ])
 
     async def get_by_phone(self, phone: str) -> User | None:

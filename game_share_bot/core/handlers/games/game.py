@@ -25,7 +25,6 @@ async def cmd_game(message: Message, session: AsyncSession):
         game_repo = GameRepository(session)
         disc_repo = DiscRepository(session)
         user_repo = UserRepository(session)
-        queue_repo = QueueEntryRepository(session)
 
         game_id = int(message.text.split('_')[1])
         logger.debug(f"Поиск игры с ID: {game_id}")
@@ -39,8 +38,9 @@ async def cmd_game(message: Message, session: AsyncSession):
         user = await user_repo.get_by_tg_id(tg_id)
         available_discs_count = await disc_repo.get_available_discs_count_by_game(game_id)
 
-        queue_entries = await queue_repo.get_queue_entries_for_game(game_id)
-        queue_position = get_entry_position(game_id, user.id, queue_entries)
+        game = await game_repo.get_by_id(game_id)
+        queue_entries = game.queues
+        queue_position = get_entry_position(user.id, queue_entries)
         already_in_queue = queue_position is not None
 
         is_available = available_discs_count > 0
@@ -85,12 +85,12 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
             await callback.answer("❌ Сначала нужно зарегистрироваться")
             return
 
-        message =await _can_enter_queue(user)
+        message = await _can_enter_queue(user)
         if message:
             await callback.answer(message)
             return
 
-        existing_queue_entry = await queue_repo.get_active_user_queue_entries_for_game(user.id, game_id)
+        existing_queue_entry = next((entry for entry in user.queues if entry.game_id == game_id), None)
         if existing_queue_entry:
             await callback.answer("❌ Вы уже стоите в очереди за этой игрой")
             return
@@ -106,15 +106,15 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
             await callback.answer("❌ Игра не найдена")
             return
 
-        new_entry = await queue_repo.create_queue_entry(user.id, available_disc.disc_id)
+        new_entry = await queue_repo.create_queue_entry(user.id, game_id)
         logger.info(f"{new_entry}")
         # result = await disc_repo.update_disc_status(available_disc.disc_id, DiscStatus.RENTED)
         available_discs_count = await disc_repo.get_available_discs_count_by_game(game_id)
 
         await callback.answer(f"✅ Вы успешно взяли игру '{game.title}'!")
 
-        entries = await queue_repo.get_queue_entries_for_game(game_id)
-        queue_position = get_entry_position(game_id, user.id, entries)
+        entries = game.queues
+        queue_position = get_entry_position(user.id, entries)
         updated_reply = format_game_full(game, available_discs_count, queue_position)
 
         if callback.message.photo:

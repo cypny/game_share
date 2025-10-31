@@ -29,7 +29,7 @@ class GameRepository(BaseRepository[Game]):
         )
 
     async def get_by_id(self, game_id:int, options = None) -> Game | None:
-        return await super().get_by_id(game_id, options = [joinedload(Game.categories)])
+        return await super().get_by_id(game_id, options = [joinedload(Game.categories), joinedload(Game.queues)])
 
     async def search_games(self, query: str, skip=0, take=5) ->  tuple[list[Game], int]:
         """Возвращает найденные игры и их общее количество"""

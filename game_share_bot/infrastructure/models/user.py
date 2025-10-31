@@ -22,3 +22,7 @@ class User(Base):
 
     rentals: Mapped[list["Rental"]] = relationship(back_populates="user")
     subscription: Mapped["Subscription"] = relationship(back_populates="user")
+    queues: Mapped[list["QueueEntry"]] = relationship(
+        "QueueEntry",
+        back_populates="user"
+    )
