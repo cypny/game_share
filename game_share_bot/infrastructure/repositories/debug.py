@@ -98,7 +98,8 @@ class DebugRepository:
             RentalStatus(id=RentalStatusEnum.ACTIVE, status="active"),
             RentalStatus(id=RentalStatusEnum.COMPLETED, status="completed"),
             RentalStatus(id=RentalStatusEnum.OVERDUE, status="overdue"),
-            RentalStatus(id=RentalStatusEnum.PENDING_RETURN, status="pending_return")
+            RentalStatus(id=RentalStatusEnum.PENDING_RETURN, status="pending_return"),
+            RentalStatus(id=RentalStatusEnum.PENDING_TAKE, status="pending_take"),
         ]
         logger.info(f"Добавлены статусы")
         discs = []

@@ -7,3 +7,4 @@ class RentalStatus(IntEnum):
     COMPLETED = 2
     OVERDUE = 3
     PENDING_RETURN = 4
+    PENDING_TAKE = 5

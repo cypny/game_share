@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.keyboards import return_kb
-from game_share_bot.domain.enums import MenuSection
+from game_share_bot.domain.enums import MenuSection, RentalStatus
 from game_share_bot.infrastructure.repositories import UserRepository
 from game_share_bot.infrastructure.repositories.rental.queue_entry import QueueEntryRepository
 from game_share_bot.infrastructure.utils import get_logger
@@ -27,7 +27,11 @@ async def my_queue(callback: CallbackQuery, session: AsyncSession):
 
     queues_info = await queue_repo.get_all_user_queues_full_info(user.id)
 
-    message_text = format_my_queue(queues_info)
+    pending_take = filter(
+            lambda r: r.status_id == RentalStatus.PENDING_TAKE,
+            user.rentals)
+
+    message_text = format_my_queue(queues_info, pending_take)
 
     await callback.message.edit_text(
         text=message_text,

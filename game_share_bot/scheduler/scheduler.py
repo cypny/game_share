@@ -12,7 +12,10 @@ def get_scheduler(
         bot,
         session_maker: async_sessionmaker) -> AsyncIOScheduler:
     job_container.init(session_maker, bot)
-    jobstores = {"default": SQLAlchemyJobStore(url=db_conn_string_sync)}
+
+    # пока убрал, так как они в бд сохраняются, и чтобы удалить или поменять название надо туда лезть
+    # jobstores = {"default": SQLAlchemyJobStore(url=db_conn_string_sync)}
+    jobstores = {}
     scheduler = AsyncIOScheduler(jobstores=jobstores)
 
     for job in JOBS:
