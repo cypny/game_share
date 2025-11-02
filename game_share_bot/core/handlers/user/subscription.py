@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from game_share_bot.core.callbacks.subscription import SubscriptionCallback
 from game_share_bot.core.keyboards import (
@@ -101,7 +101,7 @@ async def purchase_subscription(callback: CallbackQuery, callback_data: Subscrip
 
     user = await user_repo.get_by_tg_id(callback.from_user.id)
     sub_data = await state.get_data()
-    current_date = datetime.now()
+    current_date = datetime.now(timezone.utc)
     end_date = current_date + timedelta(days=30 * sub_data["duration"])
 
     subscription = await sub_repo.create(

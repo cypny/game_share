@@ -170,7 +170,7 @@ async def _can_enter_queue(user: User) -> str:
     if not user.subscription:
         return "У вас нет подписки"
     sub_plan = user.subscription.plan
-    if len(user.rentals) >= sub_plan.max_simultaneous_rental:
+    if len([r for r in user.rentals if r.status_id != RentalStatus.COMPLETED]) >= sub_plan.max_simultaneous_rental:
         return f"Исчерпан лимит дисков ({len(user.rentals)}) для подписки {sub_plan.name}"
 
     return None

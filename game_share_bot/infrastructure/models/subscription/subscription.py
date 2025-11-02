@@ -16,11 +16,11 @@ class Subscription(Base):
                                                nullable=False, unique=True,)
     plan_id: Mapped[int] = mapped_column(Integer,
                                                ForeignKey("subscription_plans.id", ondelete="CASCADE"), nullable=False)
-    start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    end_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_auto_renewal: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=datetime.utcnow)
 
     user: Mapped["User"] = relationship(back_populates="subscription")
     plan: Mapped["SubscriptionPlan"] = relationship(back_populates="subscriptions")

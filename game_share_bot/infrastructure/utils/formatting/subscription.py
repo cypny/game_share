@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timezone
+
 
 # from infrastructure.models import SubscriptionPlan, Subscription
 
@@ -6,7 +7,7 @@ from datetime import datetime
 def format_subscription_info(subscription: "Subscription") -> str:
     if subscription is None:
         return "У вас нет подписки"
-    status = "🟢 Активна" if subscription.end_date > datetime.now() else "🔴 Истекла"
+    status = "🟢 Активна" if subscription.end_date > datetime.now(timezone.utc) else "🔴 Истекла"
     auto_renew = "✅ Вкл" if subscription.is_auto_renewal else "❌ Выкл"
 
     return (
