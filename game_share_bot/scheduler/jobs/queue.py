@@ -63,8 +63,6 @@ async def update_queue_to_rental():
             return
 
         rentals_to_add = []
-        now = datetime.now(timezone.utc)
-        expected_end = now + timedelta(days=14)
 
         for queue_entry, disc in rows:
             queue_entry.is_active = False
@@ -81,9 +79,7 @@ async def update_queue_to_rental():
             new_rental = Rental(
                 user_id=queue_entry.user_id,
                 disc_id=disc.disc_id,
-                status_id=RentalStatus.PENDING_TAKE,
-                start_date=now,
-                expected_end_date=expected_end
+                status_id=RentalStatus.PENDING_TAKE
             )
             rentals_to_add.append(new_rental)
 

@@ -16,8 +16,8 @@ class Rental(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
     disc_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("general_discs.disc_id"))
     status_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("rental_statuses.id"))
-    start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    expected_end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    expected_end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     actual_end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 

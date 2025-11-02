@@ -154,8 +154,10 @@ class RentalRepository(BaseRepository[Rental]):
 
         rental.status_id = RentalStatus.ACTIVE
         rental.start_date = datetime.now(timezone.utc)
+        #TODO
+        rental.expected_end_date = datetime.now(timezone.utc) + timedelta(days=14)
 
-        # Обновляем статус диска на доступный
+        # Обновляем статус диска на не доступный
         rental.disc.status_id = DiscStatus.RENTED
 
         await self.session.commit()
