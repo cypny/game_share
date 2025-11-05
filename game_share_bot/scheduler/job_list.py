@@ -1,4 +1,4 @@
-from .jobs.queue import update_queue_to_rental
+from game_share_bot.scheduler.jobs.queue import update_queue_to_rental
 
 JOBS = [
     {

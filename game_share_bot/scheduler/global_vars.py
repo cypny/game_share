@@ -1,6 +1,3 @@
-from sqlalchemy.ext.asyncio import async_sessionmaker
-
-
 class JobContainer:
     def __init__(self):
         self._session_maker = None
@@ -15,10 +12,12 @@ class JobContainer:
         if self._session_maker is None:
             raise RuntimeError("JobContainer not initialized")
         return self._session_maker
+
     @property
     def bot(self):
         if self._bot is None:
             raise RuntimeError("JobContainer not initialized")
         return self._bot
+
 
 job_container = JobContainer()

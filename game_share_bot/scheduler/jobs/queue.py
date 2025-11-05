@@ -1,12 +1,8 @@
-from datetime import datetime, timezone, timedelta
-
-from sqlalchemy import func, and_, select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import selectinload
 
 from game_share_bot.domain.enums import DiscStatus, RentalStatus
-from game_share_bot.infrastructure.models import QueueEntry, Disc, Game, Rental, User
-from game_share_bot.infrastructure.repositories.rental.queue_entry import QueueEntryRepository
-from game_share_bot.infrastructure.utils import get_logger
+from game_share_bot.infrastructure.models import QueueEntry, Disc, Rental, User
 from game_share_bot.scheduler.global_vars import job_container
 
 
@@ -75,7 +71,7 @@ async def update_queue_to_rental():
                     break
             if has_active_rental_for_this_game:
                 continue
-            #TODO: с полями разобраться
+            # TODO: с полями разобраться
             new_rental = Rental(
                 user_id=queue_entry.user_id,
                 disc_id=disc.disc_id,

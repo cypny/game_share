@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 from game_share_bot.core.handlers import routers
 from game_share_bot.core.middlewares import DbSessionMiddleware
 from game_share_bot.infrastructure.database import init_db
-from game_share_bot.infrastructure.repositories import GameRepository
 from game_share_bot.infrastructure.utils import setup_logging, get_logger
 from game_share_bot.scheduler.scheduler import get_scheduler
 
@@ -66,6 +65,7 @@ async def main():
 
         scheduler = get_scheduler(CONN_STRING_SYNC, bot, session_maker)
         scheduler.start()
+
     try:
         await on_startup(dp)
         await dp.start_polling(bot)

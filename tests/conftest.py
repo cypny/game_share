@@ -1,14 +1,15 @@
-import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock
 from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
+
+import pytest
 from aiogram.types import Message, CallbackQuery, User as TgUser, Contact
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tests.infrastructure.database import init_test_db
-from game_share_bot.infrastructure.models.base import Base
 from game_share_bot.domain.enums.subscription.type import SubscriptionType
+from game_share_bot.infrastructure.models.base import Base
+from tests.infrastructure.database import init_test_db
 
 
 @pytest.fixture(scope="session")
@@ -188,6 +189,7 @@ async def test_game(test_session):
 def rental_callback_data():
     def _create(action="return", rental_id=1):
         return MagicMock(action=action, rental_id=rental_id)
+
     return _create
 
 
@@ -195,6 +197,7 @@ def rental_callback_data():
 def subscription_callback_data():
     def _create(action, month_duration=None, subscription_type=None):
         return MagicMock(action=action, month_duration=month_duration, subscription_type=subscription_type)
+
     return _create
 
 
