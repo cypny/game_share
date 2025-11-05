@@ -1,5 +1,4 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timezone
 
 from game_share_bot.domain.enums.disc_status import DiscStatus as DiscStatusEnum
 from game_share_bot.domain.enums.rental_status import RentalStatus as RentalStatusEnum
@@ -98,7 +97,8 @@ class DebugRepository:
             RentalStatus(id=RentalStatusEnum.ACTIVE, status="active"),
             RentalStatus(id=RentalStatusEnum.COMPLETED, status="completed"),
             RentalStatus(id=RentalStatusEnum.OVERDUE, status="overdue"),
-            RentalStatus(id=RentalStatusEnum.PENDING_RETURN, status="pending_return")
+            RentalStatus(id=RentalStatusEnum.PENDING_RETURN, status="pending_return"),
+            RentalStatus(id=RentalStatusEnum.PENDING_TAKE, status="pending_take"),
         ]
         logger.info(f"Добавлены статусы")
         discs = []

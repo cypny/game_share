@@ -24,6 +24,10 @@ class Game(Base):
         secondary=game_category_association,
         back_populates="games"
     )
+    queues: Mapped[list["QueueEntry"]] = relationship(
+        "QueueEntry",
+        back_populates="game"
+    )
 
 class GameCategory(Base):
     __tablename__ = "game_categories"

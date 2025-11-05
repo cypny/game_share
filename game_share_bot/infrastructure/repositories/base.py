@@ -30,13 +30,15 @@ class BaseRepository(Generic[ModelType]):
             select(self.model).options(*options).where(getattr(self.model, pk_name) == model_id)
         )
 
-    async def get_all(self, options = None, skip=0, take=20) -> list[ModelType]:
+    async def get_all(self, options = None, skip=0, take=None) -> list[ModelType]:
         """Получить все записи."""
         if not options:
             options = []
 
         query = select(self.model).options(*options)
-        query = query.offset(skip).limit(take)
+        query = query.offset(skip)
+        if take is not None:
+            query = query.limit(take)
         result = await self.session.execute(query)
         return result.scalars().all()
 

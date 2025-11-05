@@ -11,7 +11,7 @@ def return_to_admin_panel_kb() -> InlineKeyboardMarkup:
     return return_kb(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL))
 
 
-def returns_confirmation_kb(rentals: list[Rental]) -> InlineKeyboardMarkup:
+def rental_actions_confirmation_kb(rentals: list[Rental], action_type: str) -> InlineKeyboardMarkup:
     """Создает клавиатуру с кнопками подтверждения/отклонения возвратов"""
     keyboard_buttons = []
 
@@ -20,7 +20,7 @@ def returns_confirmation_kb(rentals: list[Rental]) -> InlineKeyboardMarkup:
         keyboard_buttons.append([
             InlineKeyboardButton(
                 text=button_text,
-                callback_data=RentalCallback(action="confirm_return", rental_id=rental.id).pack()
+                callback_data=RentalCallback(action=f"confirm_{action_type}", rental_id=rental.id).pack()
             )
         ])
 
@@ -28,7 +28,7 @@ def returns_confirmation_kb(rentals: list[Rental]) -> InlineKeyboardMarkup:
         keyboard_buttons.append([
             InlineKeyboardButton(
                 text=button_text,
-                callback_data=RentalCallback(action="reject_return", rental_id=rental.id).pack()
+                callback_data=RentalCallback(action=f"reject_{action_type}", rental_id=rental.id).pack()
             )
         ])
 
@@ -57,7 +57,9 @@ def admin_kb() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(text="📋 Запросы на возврат",
-                                     callback_data=AdminCallback(action=AdminAction.VIEW_RETURN_REQUESTS).pack())
+                                     callback_data=AdminCallback(action=AdminAction.VIEW_RETURN_REQUESTS).pack()),
+                InlineKeyboardButton(text="📋 Запросы на получение",
+                                     callback_data=AdminCallback(action=AdminAction.VIEW_TAKE_REQUESTS).pack())
             ]
         ]
     )
@@ -72,4 +74,6 @@ def add_game_image_kb() -> InlineKeyboardMarkup:
             ]
         ]
     )
+
+
 

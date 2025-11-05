@@ -21,4 +21,8 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default="user")
 
     rentals: Mapped[list["Rental"]] = relationship(back_populates="user")
-    subscriptions: Mapped["Subscription"] = relationship(back_populates="user")
+    subscription: Mapped["Subscription"] = relationship(back_populates="user")
+    queues: Mapped[list["QueueEntry"]] = relationship(
+        "QueueEntry",
+        back_populates="user"
+    )

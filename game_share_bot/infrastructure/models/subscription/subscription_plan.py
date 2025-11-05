@@ -3,7 +3,7 @@ from typing import Optional
 
 from sqlalchemy import BigInteger, Numeric, Text, String, Integer
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, validates
+from sqlalchemy.orm import Mapped, mapped_column, validates, relationship
 
 from game_share_bot.infrastructure.models.base import Base
 
@@ -19,6 +19,8 @@ class SubscriptionPlan(Base):
     max_simultaneous_rental: Mapped[int] = mapped_column(BigInteger, nullable=False)
     monthly_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text)
+
+    subscriptions: Mapped[list["Subscription"]] = relationship(back_populates="plan")
 
     @validates("name")
     def validate_name(self, key: str, name: str) -> str:
