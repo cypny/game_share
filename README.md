@@ -19,18 +19,30 @@ cp .env.example .env
 
 2. Отредактируйте .env файл, добавив токен бота
 
+3. Для создания таблиц, запустите:
+```bash
+make reset
+```
+
 ### Запуск
 
 ```bash
-docker compose up -d
+make run
 ```
 
 ### Остановка приложения
 ```bash
-docker compose down
+make down
 ```
 
 ### Разработка
+
+Пересборка, очищение бд и все в таком духе:
+```bash
+make reset
+```
+
+#### Если вне контейнера:
 
 Установка зависимостей:
 ```bash
@@ -47,12 +59,10 @@ poetry run python -m game_share_bot
 docker compose build
 ```
 
-Eсли меняете models - создавайте новую миграцию:
+Создать новую миграцию:
 ```bash
 poetry run alembic revision --autogenerate -m "описание"
 ```
-
-Она создаст файл .py в папке alembic/versions (его надо бы закоммитить)
 
 Применить миграции:
 ```bash
