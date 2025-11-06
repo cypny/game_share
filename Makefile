@@ -3,11 +3,22 @@ DOCKER_COMPOSE_RUN := $(DOCKER_COMPOSE) run --rm
 DOCKER_RUN_BOT := $(DOCKER_COMPOSE_RUN) bot
 
 
-# Вот сюда тыкайте и все заработает (надеюсь), если не заработает - попробуйте перед этим сделать make build
+# Вот сюда тыкайте и все заработает (надеюсь)
+# если не заработает - попробуйте перед этим сделать make reset
 run:
 	$(MAKE) up
 	$(MAKE) migrate
 	$(MAKE) start_bot
+
+# Пересобирает контейнеры, очищает бд, удаляет текущие миграции, создает новую и применяет ее
+reset:
+	$(MAKE) build
+	$(MAKE) up
+	$(MAKE) drop_db
+	rm -f alembic/versions/*.py
+	$(MAKE) migration
+	$(MAKE) migrate
+	$(MAKE) down
 
 # Сборка контейнеров
 build:
