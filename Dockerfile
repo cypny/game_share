@@ -20,5 +20,3 @@ RUN poetry install --only main --no-interaction --no-ansi --no-root
 
 
 COPY . .
-
-CMD ["sh", "-c", "alembic upgrade head && python -m game_share_bot"]
