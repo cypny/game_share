@@ -11,4 +11,4 @@ class ConfirmationCallback(CallbackData, prefix="game"):
 
     @classmethod
     def filter_canceled(cls) -> CallbackQueryFilter:
-        return cls.filter(F.is_confirmed == False)  # type: ignore
+        return cls.filter(F.is_confirmed == False)

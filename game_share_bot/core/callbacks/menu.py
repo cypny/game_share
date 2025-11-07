@@ -9,4 +9,4 @@ class MenuCallback(CallbackData, prefix="menu"):
 
     @classmethod
     def filter_by_section(cls, section: MenuSection) -> CallbackQueryFilter:
-        return cls.filter(F.section == section)  # type: ignore
+        return cls.filter(F.section == section)

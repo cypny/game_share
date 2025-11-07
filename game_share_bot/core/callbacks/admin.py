@@ -9,4 +9,4 @@ class AdminCallback(CallbackData, prefix="admin"):
 
     @classmethod
     def filter_by_action(cls, action: AdminAction) -> CallbackQueryFilter:
-        return cls.filter(F.action == action)  # type: ignore
+        return cls.filter(F.action == action)
