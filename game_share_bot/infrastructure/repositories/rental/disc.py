@@ -1,9 +1,9 @@
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from game_share_bot.domain.enums import DiscStatus
 from game_share_bot.infrastructure.models import Disc
 from game_share_bot.infrastructure.repositories.base import BaseRepository
-from game_share_bot.domain.enums.disc_status import DiscStatus
 
 
 class DiscRepository(BaseRepository[Disc]):
@@ -37,6 +37,6 @@ class DiscRepository(BaseRepository[Disc]):
 
         if disc:
             disc.status_id = status
-            await self.session.commit()
+            await self.session.flush()
             return True
         return False

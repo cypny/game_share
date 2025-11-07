@@ -21,7 +21,7 @@ class BaseRepository(Generic[ModelType]):
         """Получить имя первичного ключа модели."""
         return inspect(self.model).primary_key[0].name
 
-    async def get_by_id(self, model_id: Any, options = None) -> ModelType | None:
+    async def get_by_id(self, model_id: Any, options=None) -> ModelType | None:
         """Получить запись по ID."""
         if options is None:
             options = []
@@ -30,7 +30,7 @@ class BaseRepository(Generic[ModelType]):
             select(self.model).options(*options).where(getattr(self.model, pk_name) == model_id)
         )
 
-    async def get_all(self, options = None, skip=0, take=None) -> list[ModelType]:
+    async def get_all(self, options=None, skip=0, take=None) -> list[ModelType]:
         """Получить все записи."""
         if not options:
             options = []
@@ -46,7 +46,7 @@ class BaseRepository(Generic[ModelType]):
         """Создать новую запись."""
         instance = self.model(**data)
         self.session.add(instance)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(instance)
         return instance
 
@@ -60,7 +60,7 @@ class BaseRepository(Generic[ModelType]):
             .returning(self.model)
         )
         result = await self.session.execute(stmt)
-        await self.session.commit()
+        await self.session.flush()
         return result.scalar_one_or_none()
 
     async def delete(self, model_id: Any) -> bool:
@@ -68,10 +68,10 @@ class BaseRepository(Generic[ModelType]):
         pk_name = self._get_primary_key_name()
         stmt = delete(self.model).where(getattr(self.model, pk_name) == model_id)
         result = await self.session.execute(stmt)
-        await self.session.commit()
+        await self.session.flush()
         return result.rowcount > 0
 
-    async def get_by_field(self, field_name: str, value: Any, options = None) -> ModelType | None:
+    async def get_by_field(self, field_name: str, value: Any, options=None) -> ModelType | None:
         """метод для поиска по любому полю."""
         options = options or []
         field = getattr(self.model, field_name)
@@ -92,4 +92,3 @@ class BaseRepository(Generic[ModelType]):
         """Считает все строки в таблице."""
         stmt = select(func.count()).select_from(self.model)
         return await self.session.scalar(stmt)
-

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 
 from game_share_bot.infrastructure.models import User, Subscription, Rental, Disc
 from .base import BaseRepository
@@ -45,7 +45,7 @@ class UserRepository(BaseRepository[User]):
             return False
 
         user.role = "admin"
-        await self.session.commit()
+        await self.session.flush()
         return True
 
     async def get_all_admins(self) -> list[User]:
