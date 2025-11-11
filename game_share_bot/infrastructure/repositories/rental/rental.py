@@ -1,13 +1,12 @@
 import uuid
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from game_share_bot.domain.enums import RentalStatus, DiscStatus
 from game_share_bot.infrastructure.models import Rental, Disc, User, Game
-from game_share_bot.domain.enums.rental_status import RentalStatus
-from game_share_bot.domain.enums.disc_status import DiscStatus
 from game_share_bot.infrastructure.repositories.base import BaseRepository
 
 
@@ -18,7 +17,7 @@ class RentalRepository(BaseRepository[Rental]):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
 
-    async def get_by_id(self, id: int, options = None) -> Rental:
+    async def get_by_id(self, id: int, options=None) -> Rental:
         return await super().get_by_id(id, options=[selectinload(Rental.disc).selectinload(Disc.game)])
 
     async def create_rental(self, user_id: uuid.UUID, disc_id: int) -> Rental:
@@ -116,7 +115,7 @@ class RentalRepository(BaseRepository[Rental]):
         if status == RentalStatus.COMPLETED:
             rental.actual_end_date = datetime.now(timezone.utc)
 
-        await self.session.commit()
+        await self.session.flush()
         return True
 
     async def confirm_return(self, rental_id: int) -> bool:
@@ -131,7 +130,7 @@ class RentalRepository(BaseRepository[Rental]):
         # Обновляем статус диска на доступный
         rental.disc.status_id = DiscStatus.AVAILABLE
 
-        await self.session.commit()
+        await self.session.flush()
         return True
 
     async def reject_return(self, rental_id: int) -> bool:
@@ -143,7 +142,7 @@ class RentalRepository(BaseRepository[Rental]):
         rental.status_id = RentalStatus.ACTIVE
         rental.disc.status_id = DiscStatus.RENTED
 
-        await self.session.commit()
+        await self.session.flush()
         return True
 
     async def confirm_take(self, rental_id: int) -> bool:
@@ -154,13 +153,12 @@ class RentalRepository(BaseRepository[Rental]):
 
         rental.status_id = RentalStatus.ACTIVE
         rental.start_date = datetime.now(timezone.utc)
-        #TODO
+        # TODO
         rental.expected_end_date = datetime.now(timezone.utc) + timedelta(days=14)
 
         # Обновляем статус диска на не доступный
         rental.disc.status_id = DiscStatus.RENTED
-
-        await self.session.commit()
+        await self.session.flush()
         return True
 
     async def reject_take(self, rental_id: int) -> bool:
@@ -171,6 +169,5 @@ class RentalRepository(BaseRepository[Rental]):
 
         rental.status_id = RentalStatus.PENDING_TAKE
         rental.disc.status_id = DiscStatus.RENTED
-
-        await self.session.commit()
+        await self.session.flush()
         return True
