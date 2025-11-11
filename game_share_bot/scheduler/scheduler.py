@@ -6,7 +6,6 @@ from game_share_bot.scheduler.job_list import JOBS
 
 
 def get_scheduler(
-        db_conn_string_sync: str,
         bot,
         session_maker: async_sessionmaker) -> AsyncIOScheduler:
     job_container.init(session_maker, bot)

@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from game_share_bot.domain.enums.subscription_status import SubscriptionStatus
 from game_share_bot.infrastructure.models import Subscription
 from game_share_bot.infrastructure.models import User
 from game_share_bot.infrastructure.repositories.base import BaseRepository
@@ -19,3 +20,9 @@ class SubscriptionRepository(BaseRepository[Subscription]):
             "user_id",
             user.id,
             options=[joinedload(Subscription.plan)])
+
+    async def get_all_pending(self) -> list[Subscription]:
+        return await super().get_all_by_field(
+            "status",
+            SubscriptionStatus.PENDING_PAYMENT,
+            options=[joinedload(Subscription.plan), joinedload(Subscription.user)])

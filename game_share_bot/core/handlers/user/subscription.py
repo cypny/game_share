@@ -102,14 +102,19 @@ async def confirm_subscription_buy(
 
 
 @router.callback_query(SubscriptionCallback.filter(F.action == SubscriptionAction.BUY))
-async def purchase_subscription(callback: CallbackQuery, callback_data: SubscriptionCallback, session: AsyncSession, state: FSMContext):
+async def purchase_subscription(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     sub_repo = SubscriptionRepository(session)
     user_repo = UserRepository(session)
 
     user = await user_repo.get_by_tg_id(callback.from_user.id)
 
-    sub_data = await state.get_data()
+    subs = await sub_repo.get_all_by_user(user)
+    for sub in subs:
+        if sub.status == SubscriptionStatus.ACTIVE:
+            await callback.answer("Вы уже имеете подписку")
+            return
 
+    sub_data = await state.get_data()
 
     sub_plan = await session.scalar(
         select(SubscriptionPlan).where(SubscriptionPlan.id == sub_data["plan_id"])

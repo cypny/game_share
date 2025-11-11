@@ -11,9 +11,9 @@ from yookassa.domain.exceptions import BadRequestError
 from game_share_bot.infrastructure.models import SubscriptionPlan, User
 
 logger = getLogger(__name__)
+load_dotenv()
 
 def init_yookassa():
-    load_dotenv()
     shop_id = os.getenv('YOOKASSA_SHOP_ID')
     key = os.getenv('YOOKASSA_KEY')
     if shop_id is None or key is None:
@@ -35,7 +35,7 @@ async def create_payment(
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": "https://merchant-site.ru/return_url"
+            "return_url":  f"https://t.me/{os.getenv("BOT_NAME")}"
         },
         "capture": True,
         "description": f"Подписка {subscription_plan.name} на {duration} мес.",
