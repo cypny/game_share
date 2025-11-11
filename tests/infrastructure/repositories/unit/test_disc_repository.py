@@ -1,4 +1,6 @@
 import pytest
+from uuid import uuid4
+
 from game_share_bot.infrastructure.repositories.rental.disc import DiscRepository
 from game_share_bot.infrastructure.repositories.game import GameRepository
 from game_share_bot.domain.enums import DiscStatus
@@ -14,14 +16,15 @@ class TestDiscRepository:
         )
 
         disc_repo = DiscRepository(test_session)
+        disc_id = uuid4()
         disc = await disc_repo.create(
-            disc_id=1,
+            disc_id=disc_id,
             game_id=game.id,
             status_id=DiscStatus.AVAILABLE
         )
 
         assert disc is not None
-        assert disc.disc_id == 1
+        assert disc.disc_id == disc_id
         assert disc.game_id == game.id
         assert disc.status_id == DiscStatus.AVAILABLE
 
@@ -34,20 +37,21 @@ class TestDiscRepository:
         )
 
         disc_repo = DiscRepository(test_session)
+
         available_disc = await disc_repo.create(
-            disc_id=1,
+            disc_id=uuid4(),
             game_id=game.id,
             status_id=DiscStatus.AVAILABLE
         )
         await disc_repo.create(
-            disc_id=2,
+            disc_id=uuid4(),
             game_id=game.id,
             status_id=DiscStatus.RENTED
         )
 
         found_disc = await disc_repo.get_available_disc_by_game(game.id)
         assert found_disc is not None
-        assert found_disc.disc_id == 1
+        assert found_disc.disc_id == available_disc.disc_id
         assert found_disc.status_id == DiscStatus.AVAILABLE
 
     @pytest.mark.asyncio
@@ -60,12 +64,12 @@ class TestDiscRepository:
 
         disc_repo = DiscRepository(test_session)
         await disc_repo.create(
-            disc_id=1,
+            disc_id=uuid4(),
             game_id=game.id,
             status_id=DiscStatus.RENTED
         )
         await disc_repo.create(
-            disc_id=2,
+            disc_id=uuid4(),
             game_id=game.id,
             status_id=DiscStatus.RENTED
         )
@@ -82,10 +86,10 @@ class TestDiscRepository:
         )
 
         disc_repo = DiscRepository(test_session)
-        await disc_repo.create(disc_id=1, game_id=game.id, status_id=DiscStatus.AVAILABLE)
-        await disc_repo.create(disc_id=2, game_id=game.id, status_id=DiscStatus.AVAILABLE)
-        await disc_repo.create(disc_id=3, game_id=game.id, status_id=DiscStatus.RENTED)
-        await disc_repo.create(disc_id=4, game_id=game.id, status_id=DiscStatus.MAINTENANCE)
+        await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.AVAILABLE)
+        await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.AVAILABLE)
+        await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.RENTED)
+        await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.MAINTENANCE)
 
         count = await disc_repo.get_available_discs_count_by_game(game.id)
         assert count == 2
@@ -100,7 +104,7 @@ class TestDiscRepository:
 
         disc_repo = DiscRepository(test_session)
         disc = await disc_repo.create(
-            disc_id=1,
+            disc_id=uuid4(),
             game_id=game.id,
             status_id=DiscStatus.AVAILABLE
         )
@@ -123,8 +127,8 @@ class TestDiscRepository:
         )
 
         disc_repo = DiscRepository(test_session)
-        await disc_repo.create(disc_id=1, game_id=game.id, status_id=DiscStatus.AVAILABLE)
-        await disc_repo.create(disc_id=2, game_id=game.id, status_id=DiscStatus.RENTED)
+        await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.AVAILABLE)
+        await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.RENTED)
 
         discs = await disc_repo.get_all_by_field("game_id", game.id)
         assert len(discs) == 2
