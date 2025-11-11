@@ -18,7 +18,7 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
     try:
         query = callback_data.query
         page = callback_data.page
-        reply, reply_markup = await _process_search_game(query, page, session)
+        reply, reply_markup = await _process_search_game(query, session, page=page)
 
         await callback.answer()
         await callback.message.edit_text(
@@ -34,32 +34,42 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
 async def search_game(message: types.Message, session: AsyncSession):
     query = message.text
     page = 0
-    reply, reply_markup = await _process_search_game(query, page, session)
+    reply, reply_markup = await _process_search_game(query, session, page=page)
     await message.answer(
         reply,
         parse_mode="HTML",
         reply_markup=reply_markup
     )
 
-async def _process_search_game(query: str, page:int, session: AsyncSession) -> tuple[str, InlineKeyboardMarkup]:
+async def _process_search_game(
+        query: str,
+        session: AsyncSession,
+        page=-1,
+        page_size=10
+) -> tuple[str, InlineKeyboardMarkup]:
     game_repo = GameRepository(session)
-    page_size = 2
+
+    skip = page * page_size
+    take = page_size
+
     if not query:
         games = await game_repo.get_all(
-            skip=page * page_size,
-            take=page_size
+            skip=skip,
+            take=take
         )
+        games.sort(key=lambda game: game.title)
         total_games = await game_repo.count_all()
     else:
         games, total_games = await game_repo.search_games(
             query,
-            skip=page * page_size,
-            take=page_size
+            skip=skip,
+            take=take
         )
 
+    total_pages = (total_games + page_size - 1) // page_size
     games_str = format_games_list(games)
-    reply = f"Каталог игр:\n\n{games_str}"
+    reply = f"Каталог игр ({page + 1}/{total_pages}):\n\n{games_str}"
 
-    return reply, catalog_keyboard(page, total_games, page_size, query)
+    return reply, catalog_keyboard(page, total_games, page_size, query, hide_nav_buttons=page == -1)
 
 

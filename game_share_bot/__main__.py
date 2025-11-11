@@ -64,7 +64,7 @@ async def main():
         # from game_share_bot.scheduler.global_vars import set_globals
         # set_globals(bot, session_maker)
 
-        scheduler = get_scheduler(CONN_STRING_SYNC, bot, session_maker)
+        scheduler = get_scheduler(bot, session_maker)
         scheduler.start()
 
     try:

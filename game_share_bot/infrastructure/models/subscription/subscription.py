@@ -24,5 +24,5 @@ class Subscription(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=datetime.utcnow)
 
-    user: Mapped["User"] = relationship(back_populates="subscription")
+    user: Mapped["User"] = relationship(back_populates="subscriptions")
     plan: Mapped["SubscriptionPlan"] = relationship(back_populates="subscriptions")

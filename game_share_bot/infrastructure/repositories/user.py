@@ -27,7 +27,7 @@ class UserRepository(BaseRepository[User]):
             "tg_id",
             tg_id,
             options=[
-                selectinload(User.subscription).selectinload(Subscription.plan),
+                selectinload(User.subscriptions).selectinload(Subscription.plan),
                 selectinload(User.rentals).selectinload(Rental.disc).selectinload(Disc.game),
                 selectinload(User.queues)
             ])
