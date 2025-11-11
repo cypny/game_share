@@ -81,10 +81,11 @@ class BaseRepository(Generic[ModelType]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_all_by_field(self, field_name: str, value: Any) -> list[ModelType]:
+    async def get_all_by_field(self, field_name: str, value: Any, options=None) -> list[ModelType]:
         """метод для поиска всех записей по полю."""
+        options = options or []
         field = getattr(self.model, field_name)
-        stmt = select(self.model).where(field == value)
+        stmt = select(self.model).options(*options).where(field == value)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 

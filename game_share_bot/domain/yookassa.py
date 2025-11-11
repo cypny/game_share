@@ -53,3 +53,7 @@ async def create_payment(
     except Exception as e:
         logger.error(f"Ошибка при создании платежа: {e}")
         raise
+
+async def get_payment_status(payment_id: str) -> Payment:
+    payment = await asyncio.to_thread(Payment.find_one, payment_id)
+    return payment.status

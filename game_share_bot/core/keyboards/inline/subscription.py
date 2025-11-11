@@ -63,6 +63,7 @@ def payment_redirect_kb(url: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="💳 Перейти на страницу оплаты", url=url)],
+            [InlineKeyboardButton(text="Оплатил", callback_data=SubscriptionCallback(action=SubscriptionAction.CONFIRM_YOOKASSA_PAYMENT).pack())],
             [return_button(SubscriptionCallback(action=SubscriptionAction.INFO))]
         ]
     )

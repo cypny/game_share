@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -12,8 +14,8 @@ class SubscriptionRepository(BaseRepository[Subscription]):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
 
-    async def get_by_user(self, user: User) -> Subscription:
-        return await super().get_by_field(
+    async def get_all_by_user(self, user: User) ->  list[Subscription]:
+        return await super().get_all_by_field(
             "user_id",
             user.id,
             options=[joinedload(Subscription.plan)])

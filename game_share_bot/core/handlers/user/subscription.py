@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta, timezone
 
+from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.callbacks.subscription import SubscriptionCallback
 from game_share_bot.core.keyboards import (
     return_kb,
@@ -15,7 +16,8 @@ from game_share_bot.core.keyboards import (
 from game_share_bot.core.keyboards.inline.subscription import payment_redirect_kb
 from game_share_bot.core.states.subscription.subscribe import SubscriptionState
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
-from game_share_bot.domain.yookassa import create_payment
+from game_share_bot.domain.enums.subscription_status import SubscriptionStatus
+from game_share_bot.domain.yookassa import create_payment, get_payment_status
 from game_share_bot.infrastructure.models import SubscriptionPlan
 from game_share_bot.infrastructure.repositories import SubscriptionRepository
 from game_share_bot.infrastructure.repositories import UserRepository
@@ -31,8 +33,11 @@ async def subscription_info_and_buying(callback: CallbackQuery, session: AsyncSe
     user_repo = UserRepository(session)
     sub_repo = SubscriptionRepository(session)
     user = await user_repo.get_by_tg_id(callback.from_user.id)
-    subscription = await sub_repo.get_by_user(user)
-
+    subscriptions = await sub_repo.get_all_by_user(user)
+    active_sub = None
+    for sub in subscriptions:
+        if sub.status == SubscriptionStatus.ACTIVE:
+            active_sub = sub
     plans = await session.scalars(
         select(SubscriptionPlan)
     )
@@ -40,7 +45,7 @@ async def subscription_info_and_buying(callback: CallbackQuery, session: AsyncSe
     plan_infos = [{"id": plan.id, "name": plan.name} for plan in plans]
     await callback.answer()
     await callback.message.edit_text(
-        text=format_subscription_info(subscription),
+        text=format_subscription_info(active_sub),
         reply_markup=subscription_actions_kb(plan_infos),
         parse_mode="HTML"
     )
@@ -126,6 +131,7 @@ async def purchase_subscription(callback: CallbackQuery, callback_data: Subscrip
         user_id=user.id,
         plan_id=sub_data['plan_id'],
         yookassa_payment_id=payment_id,
+        status=SubscriptionStatus.PENDING_PAYMENT,
         start_date=current_date,
         end_date=end_date,
         is_auto_renewal=False
@@ -141,3 +147,27 @@ async def purchase_subscription(callback: CallbackQuery, callback_data: Subscrip
         await callback.answer("Ошибка")
 
     await state.clear()
+
+@router.callback_query(SubscriptionCallback.filter(F.action == SubscriptionAction.CONFIRM_YOOKASSA_PAYMENT))
+async def check_payment(callback: CallbackQuery, session: AsyncSession):
+    sub_repo = SubscriptionRepository(session)
+    user_repo = UserRepository(session)
+
+    user = await user_repo.get_by_tg_id(callback.from_user.id)
+
+    subscriptions = await sub_repo.get_all_by_user(user)
+    for subscription in subscriptions:
+        if subscription.status == SubscriptionStatus.PENDING_PAYMENT:
+            payment_status = await get_payment_status(str(subscription.yookassa_payment_id))
+
+            if payment_status == "succeeded":
+                await sub_repo.update(subscription.id, status=SubscriptionStatus.ACTIVE)
+
+                await callback.answer()
+                await callback.message.edit_text(
+                    text="Оплата прошла успешно",
+                    reply_markup=return_kb(SubscriptionCallback(action=SubscriptionAction.INFO)),
+                )
+                return
+
+    await callback.answer("Оплата не завершена")
