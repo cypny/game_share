@@ -58,3 +58,11 @@ def confirm_subscription_buy_kb() -> InlineKeyboardMarkup:
                     ).pack())]
         ]
     )
+
+def payment_redirect_kb(url: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="💳 Перейти на страницу оплаты", url=url)],
+            [return_button(SubscriptionCallback(action=SubscriptionAction.INFO))]
+        ]
+    )

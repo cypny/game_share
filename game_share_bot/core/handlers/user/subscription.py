@@ -12,8 +12,10 @@ from game_share_bot.core.keyboards import (
     select_duration_kb,
     confirm_subscription_buy_kb
 )
+from game_share_bot.core.keyboards.inline.subscription import payment_redirect_kb
 from game_share_bot.core.states.subscription.subscribe import SubscriptionState
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
+from game_share_bot.domain.yookassa import create_payment
 from game_share_bot.infrastructure.models import SubscriptionPlan
 from game_share_bot.infrastructure.repositories import SubscriptionRepository
 from game_share_bot.infrastructure.repositories import UserRepository
@@ -100,13 +102,30 @@ async def purchase_subscription(callback: CallbackQuery, callback_data: Subscrip
     user_repo = UserRepository(session)
 
     user = await user_repo.get_by_tg_id(callback.from_user.id)
+
     sub_data = await state.get_data()
+
+
+    sub_plan = await session.scalar(
+        select(SubscriptionPlan).where(SubscriptionPlan.id == sub_data["plan_id"])
+    )
     current_date = datetime.now(timezone.utc)
     end_date = current_date + timedelta(days=30 * sub_data["duration"])
 
+    try:
+        payment_id, confirmation_url = await create_payment(
+            sub_plan,
+            sub_data["duration"],
+            user
+        )
+    except Exception as e:
+        logger.error(e)
+        await callback.answer("Не удалось создать платеж, попробуйте позже")
+        raise
     subscription = await sub_repo.create(
         user_id=user.id,
         plan_id=sub_data['plan_id'],
+        yookassa_payment_id=payment_id,
         start_date=current_date,
         end_date=end_date,
         is_auto_renewal=False
@@ -115,8 +134,8 @@ async def purchase_subscription(callback: CallbackQuery, callback_data: Subscrip
     if subscription:
         await callback.answer()
         await callback.message.edit_text(
-            text=f"Пока не реализовано: подписка {sub_data['plan_name']} {sub_data['duration']} месяцев выдана",
-            reply_markup=return_kb(SubscriptionCallback(action=SubscriptionAction.INFO)),
+            text=f"Оплатите подписку: подписка {sub_data['plan_name']} {sub_data['duration']} месяцев",
+            reply_markup=payment_redirect_kb(confirmation_url),
         )
     else:
         await callback.answer("Ошибка")
