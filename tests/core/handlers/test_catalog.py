@@ -19,19 +19,24 @@ class TestCatalogHandlers:
             mock_format.return_value = "formatted_games"
             mock_kb.return_value = "mock_keyboard"
 
-            callback_data = CatalogCallback(query=None, page=0)
+            # query обязателен и строка
+            callback_data = CatalogCallback(query="", page=0)
 
             from game_share_bot.core.handlers.games.catalog import catalog
             await catalog(mock_callback_query, callback_data, test_session)
 
-            mock_repo.get_all_with_available_discs.assert_awaited_once_with(skip=0, take=7)
+            mock_repo.get_all_with_available_discs.assert_awaited_once_with(
+                skip=0,
+                take=7,
+            )
             mock_repo.count_all_with_available_discs.assert_awaited_once()
 
             mock_format.assert_called_once_with(["game1", "game2"])
             mock_kb.assert_called_once()
-            mock_callback_query.answer.assert_called_once()
 
+            mock_callback_query.answer.assert_called_once()
             mock_callback_query.message.edit_text.assert_called_once()
+
             call_args = mock_callback_query.message.edit_text.call_args
             text = call_args.args[0]
 
@@ -56,12 +61,15 @@ class TestCatalogHandlers:
             mock_format.return_value = ""
             mock_kb.return_value = "mock_keyboard"
 
-            callback_data = CatalogCallback(query=None, page=0)
+            callback_data = CatalogCallback(query="", page=0)
 
             from game_share_bot.core.handlers.games.catalog import catalog
             await catalog(mock_callback_query, callback_data, test_session)
 
-            mock_repo.get_all_with_available_discs.assert_awaited_once_with(skip=0, take=7)
+            mock_repo.get_all_with_available_discs.assert_awaited_once_with(
+                skip=0,
+                take=7,
+            )
             mock_repo.count_all_with_available_discs.assert_awaited_once()
             mock_format.assert_called_once_with([])
 
@@ -70,7 +78,6 @@ class TestCatalogHandlers:
             text = call_args.args[0]
 
             assert "Каталог игр:" in text
-            # тут не навязываем формат пустого списка, достаточно, что вызовы корректны
             assert call_args.kwargs.get("reply_markup") == "mock_keyboard"
 
     @pytest.mark.asyncio
@@ -83,7 +90,7 @@ class TestCatalogHandlers:
 
             mock_repo.get_all_with_available_discs.side_effect = Exception("DB error")
 
-            callback_data = CatalogCallback(query=None, page=0)
+            callback_data = CatalogCallback(query="", page=0)
 
             from game_share_bot.core.handlers.games.catalog import catalog
             await catalog(mock_callback_query, callback_data, test_session)
