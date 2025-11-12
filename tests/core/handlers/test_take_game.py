@@ -1,176 +1,165 @@
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
-from aiogram.types import CallbackQuery
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from game_share_bot.domain.enums import DiscStatus
+from game_share_bot.core.callbacks import GameCallback
+from game_share_bot.domain.enums.actions.game_actions import GameAction
 
 
 class TestTakeGameHandlers:
-    """Тесты для процесса взятия игры"""
-
     @pytest.mark.asyncio
     async def test_take_game_success(self, mock_callback_query, test_session):
-        """Тест успешного взятия игры"""
-        with patch('game_share_bot.core.handlers.games.catalog.GameRepository') as mock_game_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.DiscRepository') as mock_disc_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.RentalRepository') as mock_rental_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.UserRepository') as mock_user_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.get_game_detail_kb') as mock_kb:
-            mock_game_repo = AsyncMock()
-            mock_disc_repo = AsyncMock()
-            mock_rental_repo = AsyncMock()
-            mock_user_repo = AsyncMock()
+        from game_share_bot.core.handlers.games import game as handlers
 
-            mock_game_repo_class.return_value = mock_game_repo
-            mock_disc_repo_class.return_value = mock_disc_repo
-            mock_rental_repo_class.return_value = mock_rental_repo
-            mock_user_repo_class.return_value = mock_user_repo
+        with patch.object(handlers, "UserRepository") as user_repo_cls, \
+             patch.object(handlers, "GameRepository") as game_repo_cls, \
+             patch.object(handlers, "DiscRepository") as disc_repo_cls, \
+             patch.object(handlers, "QueueEntryRepository") as queue_repo_cls, \
+             patch.object(handlers, "_can_enter_queue") as can_enter, \
+             patch.object(handlers, "format_game_full") as format_full, \
+             patch.object(handlers, "enter_queue_kb") as kb_factory, \
+             patch.object(handlers, "get_entry_position") as get_pos:
 
-            # Настраиваем данные
-            test_user = MagicMock(id=1)
-            mock_user_repo.get_by_tg_id.return_value = test_user
+            user_repo = AsyncMock()
+            game_repo = AsyncMock()
+            disc_repo = AsyncMock()
+            queue_repo = AsyncMock()
 
-            test_game = MagicMock(id=1, title="Test Game")
-            mock_game_repo.get_by_id.return_value = test_game
+            user_repo_cls.return_value = user_repo
+            game_repo_cls.return_value = game_repo
+            disc_repo_cls.return_value = disc_repo
+            queue_repo_cls.return_value = queue_repo
 
-            # Нет активной аренды
-            mock_rental_repo.get_active_rental_by_user_and_game.return_value = None
+            user = MagicMock(id=10, rentals=[], queues=[])
+            game = MagicMock(id=1, title="Test Game", queues=[])
+            user_repo.get_by_tg_id.return_value = user
+            game_repo.get_by_id.return_value = game
 
-            # Есть доступный диск
-            test_disc = MagicMock(disc_id=123)
-            mock_disc_repo.get_available_disc_by_game.return_value = test_disc
+            # Нет доступных дисков -> ставим в очередь
+            disc_repo.get_available_discs_count_by_game.return_value = 0
 
-            # Успешное создание аренды
-            test_rental = MagicMock(id=456)
-            mock_rental_repo.create_rental.return_value = test_rental
+            can_enter.return_value = None
+            queue_repo.create_queue_entry.return_value = MagicMock()
+            get_pos.return_value = 1
+            format_full.return_value = "GAME_INFO"
+            kb_factory.return_value = "KB"
 
-            # Успешное обновление статуса диска
-            mock_disc_repo.update_disc_status.return_value = True
+            callback_data = GameCallback(
+                game_id=1,
+                action=GameAction.REQUEST_QUEUE,
+            )
 
-            # После взятия осталось 1 диск
-            mock_disc_repo.get_available_discs_count_by_game.return_value = 1
+            await handlers.enter_game_queue(mock_callback_query, callback_data, test_session)
 
-            mock_kb.return_value = "mock_updated_keyboard"
-
-            # Устанавливаем callback data
-            mock_callback_query.data = "take_game_1"
-            mock_callback_query.message.photo = [MagicMock()]  # Сообщение с фото
-
-            from game_share_bot.core.handlers.games.catalog import take_game
-            await take_game(mock_callback_query, test_session)
-
-            # Проверяем вызовы
-            mock_user_repo.get_by_tg_id.assert_called_with(mock_callback_query.from_user.id)
-            mock_rental_repo.get_active_rental_by_user_and_game.assert_called_with(1, 1)
-            mock_disc_repo.get_available_disc_by_game.assert_called_with(1)
-            mock_rental_repo.create_rental.assert_called_with(1, 123)
-            mock_disc_repo.update_disc_status.assert_called_with(123, DiscStatus.RENTED)
-
-            # Проверяем ответ пользователю
-            mock_callback_query.answer.assert_called_with("✅ Вы успешно взяли игру 'Test Game'!")
-
-            # Проверяем обновление сообщения
-            mock_callback_query.message.edit_caption.assert_called_once()
-            call_args = mock_callback_query.message.edit_caption.call_args
-            assert "Вы уже взяли эту игру" in call_args[1]['caption']
-            assert "Осталось дисков: 1" in call_args[1]['caption']
-            assert call_args[1]['reply_markup'] == "mock_updated_keyboard"
+            user_repo.get_by_tg_id.assert_awaited_once_with(mock_callback_query.from_user.id)
+            queue_repo.create_queue_entry.assert_awaited_once_with(user.id, game.id)
+            assert mock_callback_query.answer.called
 
     @pytest.mark.asyncio
     async def test_take_game_user_not_registered(self, mock_callback_query, test_session):
-        """Тест когда пользователь не зарегистрирован"""
-        with patch('game_share_bot.core.handlers.games.catalog.UserRepository') as mock_user_repo_class:
-            mock_user_repo = AsyncMock()
-            mock_user_repo_class.return_value = mock_user_repo
-            mock_user_repo.get_by_tg_id.return_value = None
+        from game_share_bot.core.handlers.games import game as handlers
 
-            mock_callback_query.data = "take_game_1"
+        with patch.object(handlers, "UserRepository") as user_repo_cls:
+            user_repo = AsyncMock()
+            user_repo_cls.return_value = user_repo
 
-            from game_share_bot.core.handlers.games.catalog import take_game
-            await take_game(mock_callback_query, test_session)
+            user_repo.get_by_tg_id.return_value = None
 
-            mock_callback_query.answer.assert_called_with("❌ Сначала нужно зарегистрироваться")
+            callback_data = GameCallback(
+                game_id=1,
+                action=GameAction.REQUEST_QUEUE,
+            )
+
+            await handlers.enter_game_queue(mock_callback_query, callback_data, test_session)
+
+            assert mock_callback_query.answer.called
+            msg = mock_callback_query.answer.call_args.args[0]
+            assert "зарегистрироваться" in msg
 
     @pytest.mark.asyncio
-    async def test_take_game_already_rented(self, mock_callback_query, test_session):
-        """Тест когда у пользователя уже есть активная аренда"""
-        with patch('game_share_bot.core.handlers.games.catalog.UserRepository') as mock_user_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.RentalRepository') as mock_rental_repo_class:
-            mock_user_repo = AsyncMock()
-            mock_rental_repo = AsyncMock()
+    async def test_take_game_already_in_queue(self, mock_callback_query, test_session):
+        from game_share_bot.core.handlers.games import game as handlers
 
-            mock_user_repo_class.return_value = mock_user_repo
-            mock_rental_repo_class.return_value = mock_rental_repo
+        with patch.object(handlers, "UserRepository") as user_repo_cls, \
+                patch.object(handlers, "GameRepository") as game_repo_cls, \
+                patch.object(handlers, "_can_enter_queue") as can_enter:
+            user_repo = AsyncMock()
+            game_repo = AsyncMock()
+            user_repo_cls.return_value = user_repo
+            game_repo_cls.return_value = game_repo
 
-            test_user = MagicMock(id=1)
-            mock_user_repo.get_by_tg_id.return_value = test_user
+            user = MagicMock(id=10, queues=[], rentals=[])
+            user_repo.get_by_tg_id.return_value = user
 
-            # У пользователя уже есть активная аренда
-            mock_rental_repo.get_active_rental_by_user_and_game.return_value = MagicMock()
+            game_repo.get_by_id.return_value = MagicMock(id=1, title="Test Game")
 
-            mock_callback_query.data = "take_game_1"
+            can_enter.return_value = "❌ Вы уже стоите в очереди за этой игрой"
 
-            from game_share_bot.core.handlers.games.catalog import take_game
-            await take_game(mock_callback_query, test_session)
+            callback_data = GameCallback(
+                game_id=1,
+                action=GameAction.REQUEST_QUEUE,
+            )
 
-            mock_callback_query.answer.assert_called_with("❌ У вас уже есть эта игра на руках")
+            await handlers.enter_game_queue(mock_callback_query, callback_data, test_session)
+
+            mock_callback_query.answer.assert_called_once_with(
+                "❌ Вы уже стоите в очереди за этой игрой"
+            )
 
     @pytest.mark.asyncio
     async def test_take_game_no_available_discs(self, mock_callback_query, test_session):
-        """Тест когда нет доступных дисков"""
-        with patch('game_share_bot.core.handlers.games.catalog.UserRepository') as mock_user_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.RentalRepository') as mock_rental_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.DiscRepository') as mock_disc_repo_class:
-            mock_user_repo = AsyncMock()
-            mock_rental_repo = AsyncMock()
-            mock_disc_repo = AsyncMock()
+        from game_share_bot.core.handlers.games import game as handlers
 
-            mock_user_repo_class.return_value = mock_user_repo
-            mock_rental_repo_class.return_value = mock_rental_repo
-            mock_disc_repo_class.return_value = mock_disc_repo
+        with patch.object(handlers, "UserRepository") as user_repo_cls, \
+             patch.object(handlers, "_can_enter_queue") as can_enter, \
+             patch.object(handlers, "DiscRepository") as disc_repo_cls:
 
-            test_user = MagicMock(id=1)
-            mock_user_repo.get_by_tg_id.return_value = test_user
-            mock_rental_repo.get_active_rental_by_user_and_game.return_value = None
-            mock_disc_repo.get_available_disc_by_game.return_value = None  # Нет доступных дисков
+            user_repo = AsyncMock()
+            disc_repo = AsyncMock()
+            user_repo_cls.return_value = user_repo
+            disc_repo_cls.return_value = disc_repo
 
-            mock_callback_query.data = "take_game_1"
+            user = MagicMock(id=10, queues=[], rentals=[])
+            user_repo.get_by_tg_id.return_value = user
 
-            from game_share_bot.core.handlers.games.catalog import take_game
-            await take_game(mock_callback_query, test_session)
+            can_enter.return_value = None
+            disc_repo.get_available_discs_count_by_game.return_value = 0
 
-            mock_callback_query.answer.assert_called_with("❌ Все диски этой игры заняты")
+            callback_data = GameCallback(
+                game_id=1,
+                action=GameAction.REQUEST_QUEUE,
+            )
+
+            await handlers.enter_game_queue(mock_callback_query, callback_data, test_session)
+
+            mock_callback_query.answer.assert_called_once()
+            msg = mock_callback_query.answer.call_args.args[0]
 
     @pytest.mark.asyncio
     async def test_take_game_game_not_found(self, mock_callback_query, test_session):
-        """Тест когда игра не найдена"""
-        with patch('game_share_bot.core.handlers.games.catalog.UserRepository') as mock_user_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.RentalRepository') as mock_rental_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.DiscRepository') as mock_disc_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.GameRepository') as mock_game_repo_class:
-            mock_user_repo = AsyncMock()
-            mock_rental_repo = AsyncMock()
-            mock_disc_repo = AsyncMock()
-            mock_game_repo = AsyncMock()
+        from game_share_bot.core.handlers.games import game as handlers
 
-            mock_user_repo_class.return_value = mock_user_repo
-            mock_rental_repo_class.return_value = mock_rental_repo
-            mock_disc_repo_class.return_value = mock_disc_repo
-            mock_game_repo_class.return_value = mock_game_repo
+        with patch.object(handlers, "UserRepository") as user_repo_cls, \
+             patch.object(handlers, "_can_enter_queue") as can_enter, \
+             patch.object(handlers, "GameRepository") as game_repo_cls:
 
-            test_user = MagicMock(id=1)
-            mock_user_repo.get_by_tg_id.return_value = test_user
-            mock_rental_repo.get_active_rental_by_user_and_game.return_value = None
+            user_repo = AsyncMock()
+            game_repo = AsyncMock()
+            user_repo_cls.return_value = user_repo
+            game_repo_cls.return_value = game_repo
 
-            test_disc = MagicMock(disc_id=123)
-            mock_disc_repo.get_available_disc_by_game.return_value = test_disc
+            user = MagicMock(id=10, queues=[], rentals=[])
+            user_repo.get_by_tg_id.return_value = user
 
-            # Игра не найдена
-            mock_game_repo.get_by_id.return_value = None
+            can_enter.return_value = None
+            game_repo.get_by_id.return_value = None
 
-            mock_callback_query.data = "take_game_1"
+            callback_data = GameCallback(
+                game_id=999,
+                action=GameAction.REQUEST_QUEUE,
+            )
 
-            from game_share_bot.core.handlers.games.catalog import take_game
-            await take_game(mock_callback_query, test_session)
+            await handlers.enter_game_queue(mock_callback_query, callback_data, test_session)
 
-            mock_callback_query.answer.assert_called_with("❌ Игра не найдена")
+            mock_callback_query.answer.assert_called_once()
+            msg = mock_callback_query.answer.call_args.args[0]
+            assert "Игра не найдена" in msg

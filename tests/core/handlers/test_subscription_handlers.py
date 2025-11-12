@@ -1,179 +1,221 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
+
 from game_share_bot.core.callbacks.subscription import SubscriptionCallback
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
 from game_share_bot.domain.enums.subscription.type import SubscriptionType
+from game_share_bot.core.states.subscription.subscribe import SubscriptionState
 
 
 class TestSubscriptionHandlers:
     @pytest.mark.asyncio
-    async def test_subscription_info_and_buying_with_subscription(self, mock_callback_query, mock_user,
-                                                                  mock_subscription):
-        from game_share_bot.core.handlers.user.subscription import subscription_info_and_buying
+    async def test_subscription_info_and_buying_with_subscription(
+        self,
+        mock_callback_query,
+        mock_state,
+        mock_user,
+        mock_subscription,
+    ):
+        from game_share_bot.core.handlers.user import subscription as handlers
 
         session = AsyncMock()
 
-        user_repo = AsyncMock()
-        user_repo.get_by_tg_id = AsyncMock(return_value=mock_user)
+        with patch.object(handlers, "UserRepository") as user_repo_cls, \
+             patch.object(handlers, "SubscriptionRepository") as sub_repo_cls, \
+             patch.object(handlers, "format_subscription_info") as format_info, \
+             patch.object(handlers, "subscription_actions_kb") as actions_kb:
 
-        sub_repo = AsyncMock()
-        sub_repo.get_by_user = AsyncMock(return_value=mock_subscription)
+            user_repo = AsyncMock()
+            sub_repo = AsyncMock()
+            user_repo_cls.return_value = user_repo
+            sub_repo_cls.return_value = sub_repo
 
-        with patch('game_share_bot.core.handlers.user.subscription.format_subscription_info') as mock_format, \
-                patch('game_share_bot.core.handlers.user.subscription.subscription_actions_kb') as mock_kb, \
-                patch('game_share_bot.core.handlers.user.subscription.UserRepository', return_value=user_repo), \
-                patch('game_share_bot.core.handlers.user.subscription.SubscriptionRepository', return_value=sub_repo):
-            mock_format.return_value = "Форматированная информация о подписке"
-            mock_kb.return_value = "mock_keyboard"
+            user_repo.get_by_tg_id.return_value = mock_user
+            sub_repo.get_by_user.return_value = mock_subscription
 
-            await subscription_info_and_buying(mock_callback_query, session)
+            plan = MagicMock(id=1, name="TestPlan")
+            session.scalars.return_value = [plan]
 
-        user_repo.get_by_tg_id.assert_called_once_with(123)
-        sub_repo.get_by_user.assert_called_once_with(mock_user)
-        mock_format.assert_called_once_with(mock_subscription)
-        mock_callback_query.message.edit_text.assert_called_once()
+            format_info.return_value = "SUB_INFO"
+            actions_kb.return_value = "KB"
+
+            await handlers.subscription_info_and_buying(
+                mock_callback_query,
+                session,
+                mock_state,
+            )
+
+            user_repo.get_by_tg_id.assert_awaited_once_with(
+                mock_callback_query.from_user.id
+            )
+            sub_repo.get_by_user.assert_awaited_once_with(mock_user)
+
+            mock_callback_query.message.edit_text.assert_called_once_with(
+                text="SUB_INFO",
+                reply_markup="KB",
+                parse_mode="HTML",
+            )
+            mock_state.set_state.assert_awaited_once_with(
+                SubscriptionState.choosing_plan
+            )
 
     @pytest.mark.asyncio
-    async def test_subscription_info_and_buying_no_subscription(self, mock_callback_query, mock_user):
-        from game_share_bot.core.handlers.user.subscription import subscription_info_and_buying
+    async def test_subscription_info_and_buying_no_subscription(
+        self,
+        mock_callback_query,
+        mock_state,
+        mock_user,
+    ):
+        from game_share_bot.core.handlers.user import subscription as handlers
 
         session = AsyncMock()
 
-        user_repo = AsyncMock()
-        user_repo.get_by_tg_id = AsyncMock(return_value=mock_user)
+        with patch.object(handlers, "UserRepository") as user_repo_cls, \
+             patch.object(handlers, "SubscriptionRepository") as sub_repo_cls, \
+             patch.object(handlers, "format_subscription_info") as format_info, \
+             patch.object(handlers, "subscription_actions_kb") as actions_kb:
 
-        sub_repo = AsyncMock()
-        sub_repo.get_by_user = AsyncMock(return_value=None)
+            user_repo = AsyncMock()
+            sub_repo = AsyncMock()
+            user_repo_cls.return_value = user_repo
+            sub_repo_cls.return_value = sub_repo
 
-        with patch('game_share_bot.core.handlers.user.subscription.format_subscription_info') as mock_format, \
-                patch('game_share_bot.core.handlers.user.subscription.subscription_actions_kb') as mock_kb, \
-                patch('game_share_bot.core.handlers.user.subscription.UserRepository', return_value=user_repo), \
-                patch('game_share_bot.core.handlers.user.subscription.SubscriptionRepository', return_value=sub_repo):
-            mock_format.return_value = "Информация о подписке отсутствует"
-            mock_kb.return_value = "mock_keyboard"
+            user_repo.get_by_tg_id.return_value = mock_user
+            sub_repo.get_by_user.return_value = None
 
-            await subscription_info_and_buying(mock_callback_query, session)
+            plan = MagicMock(id=1, name="TestPlan")
+            session.scalars.return_value = [plan]
 
-        mock_format.assert_called_once_with(None)
+            format_info.return_value = "NO_SUB"
+            actions_kb.return_value = "KB"
+
+            await handlers.subscription_info_and_buying(
+                mock_callback_query,
+                session,
+                mock_state,
+            )
+
+            mock_callback_query.message.edit_text.assert_called_once()
+            _, kwargs = mock_callback_query.message.edit_text.call_args
+            assert "NO_SUB" in kwargs["text"]
+            assert kwargs["reply_markup"] == "KB"
+            assert kwargs["parse_mode"] == "HTML"
 
     @pytest.mark.asyncio
-    async def test_select_subscription_duration(self, mock_callback_query, mock_subscription_plan):
-        from game_share_bot.core.handlers.user.subscription import select_subscription_duration
+    async def test_select_subscription_duration(self, mock_callback_query, mock_state):
+        from game_share_bot.core.handlers.user import subscription as handlers
 
         session = AsyncMock()
-        session.scalar = AsyncMock(return_value=mock_subscription_plan)
+        plan = MagicMock(id=10, name="Premium")
+        session.scalar.return_value = plan
 
-        callback_data = SubscriptionCallback(
-            action=SubscriptionAction.SELECT_DURATION,
-            subscription_type=SubscriptionType.PREMIUM
-        )
+        with patch.object(handlers, "select_duration_kb") as duration_kb:
+            duration_kb.return_value = "KB"
 
-        with patch('game_share_bot.core.handlers.user.subscription.format_subscription_plan') as mock_format, \
-                patch('game_share_bot.core.handlers.user.subscription.select_duration_kb') as mock_kb:
-            mock_format.return_value = "Форматированная информация о плане"
-            mock_kb.return_value = "mock_duration_keyboard"
+            callback_data = SubscriptionCallback(
+                action=SubscriptionAction.SELECT_DURATION,
+                subscription_type=plan.id,
+            )
 
-            await select_subscription_duration(mock_callback_query, callback_data, session)
+            await handlers.select_subscription_duration(
+                mock_callback_query,
+                callback_data,
+                session,
+                mock_state,
+            )
 
-        session.scalar.assert_called_once()
-        mock_format.assert_called_once_with(mock_subscription_plan)
-        mock_callback_query.message.edit_text.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_select_subscription_duration_plan_not_found(self, mock_callback_query):
-        from game_share_bot.core.handlers.user.subscription import select_subscription_duration
-
-        session = AsyncMock()
-        session.scalar = AsyncMock(return_value=None)
-
-        callback_data = SubscriptionCallback(
-            action=SubscriptionAction.SELECT_DURATION,
-            subscription_type=SubscriptionType.PREMIUM
-        )
-
-        with patch('game_share_bot.core.handlers.user.subscription.format_subscription_plan') as mock_format, \
-                patch('game_share_bot.core.handlers.user.subscription.select_duration_kb') as mock_kb:
-            mock_format.return_value = "План не найден"
-            mock_kb.return_value = "mock_duration_keyboard"
-
-            await select_subscription_duration(mock_callback_query, callback_data, session)
-
-        mock_format.assert_called_once_with(None)
+            mock_state.update_data.assert_awaited_once_with(
+                plan_id=plan.id,
+                plan_name=plan.name,
+            )
+            mock_callback_query.message.edit_text.assert_called_once()
+            _, kwargs = mock_callback_query.message.edit_text.call_args
+            assert "Подписка:" in kwargs["text"]
+            assert kwargs["reply_markup"] == "KB"
+            assert kwargs["parse_mode"] == "HTML"
+            mock_state.set_state.assert_awaited_once_with(
+                SubscriptionState.choosing_duration
+            )
 
     @pytest.mark.asyncio
-    async def test_confirm_subscription_buy(self, mock_callback_query):
-        from game_share_bot.core.handlers.user.subscription import confirm_subscription_buy
+    async def test_confirm_subscription_buy(self, mock_callback_query, mock_state):
+        from game_share_bot.core.handlers.user import subscription as handlers
 
-        callback_data = SubscriptionCallback(
-            action=SubscriptionAction.CONFIRM_BUY,
-            subscription_type=SubscriptionType.PREMIUM,
-            month_duration=6
-        )
+        with patch.object(handlers, "confirm_subscription_buy_kb") as kb_factory:
+            kb_factory.return_value = "KB"
 
-        with patch('game_share_bot.core.handlers.user.subscription.confirm_subscription_buy_kb') as mock_kb:
-            mock_kb.return_value = "mock_confirm_keyboard"
+            mock_state.get_data.return_value = {
+                "plan_name": "Premium",
+                "duration": 3,
+            }
 
-            await confirm_subscription_buy(mock_callback_query, callback_data)
+            callback_data = SubscriptionCallback(
+                action=SubscriptionAction.CONFIRM_BUY,
+                month_duration=3,
+            )
 
-        mock_callback_query.message.edit_text.assert_called_once()
-        mock_callback_query.answer.assert_called_once()
+            await handlers.confirm_subscription_buy(
+                mock_callback_query,
+                callback_data,
+                mock_state,
+            )
 
-    @pytest.mark.asyncio
-    async def test_purchase_subscription(self, mock_callback_query):
-        from game_share_bot.core.handlers.user.subscription import purchase_subscription
-
-        callback_data = SubscriptionCallback(
-            action=SubscriptionAction.BUY,
-            subscription_type=SubscriptionType.PREMIUM,
-            month_duration=12
-        )
-
-        with patch('game_share_bot.core.handlers.user.subscription.return_kb') as mock_return_kb:
-            mock_return_kb.return_value = "mock_return_keyboard"
-
-            await purchase_subscription(mock_callback_query, callback_data)
-
-        mock_callback_query.message.edit_text.assert_called_once()
-        mock_callback_query.answer.assert_called_once()
+            mock_callback_query.message.edit_text.assert_called_once()
+            _, kwargs = mock_callback_query.message.edit_text.call_args
+            assert "Подтвердите данные:" in kwargs["text"]
+            assert "Premium" in kwargs["text"]
+            assert "3" in kwargs["text"]
+            assert kwargs["reply_markup"] == "KB"
+            assert kwargs["parse_mode"] == "HTML"
+            mock_state.set_state.assert_awaited_once_with(
+                SubscriptionState.confirming
+            )
 
     @pytest.mark.asyncio
-    async def test_subscription_info_user_not_found(self, mock_callback_query):
-        from game_share_bot.core.handlers.user.subscription import subscription_info_and_buying
+    async def test_purchase_subscription_success(
+        self,
+        mock_callback_query,
+        mock_state,
+        mock_user,
+    ):
+        from game_share_bot.core.handlers.user import subscription as handlers
 
         session = AsyncMock()
 
-        user_repo = AsyncMock()
-        user_repo.get_by_tg_id = AsyncMock(return_value=None)
+        with patch.object(handlers, "UserRepository") as user_repo_cls, \
+             patch.object(handlers, "SubscriptionRepository") as sub_repo_cls, \
+             patch.object(handlers, "return_kb") as return_kb:
 
-        sub_repo = AsyncMock()
+            user_repo = AsyncMock()
+            sub_repo = AsyncMock()
+            user_repo_cls.return_value = user_repo
+            sub_repo_cls.return_value = sub_repo
 
-        with patch('game_share_bot.core.handlers.user.subscription.UserRepository', return_value=user_repo), \
-                patch('game_share_bot.core.handlers.user.subscription.SubscriptionRepository', return_value=sub_repo), \
-                patch('game_share_bot.core.handlers.user.subscription.format_subscription_info') as mock_format, \
-                patch('game_share_bot.core.handlers.user.subscription.subscription_actions_kb') as mock_kb:
-            mock_format.return_value = "Ошибка: пользователь не найден"
-            mock_kb.return_value = "mock_keyboard"
+            user_repo.get_by_tg_id.return_value = mock_user
+            mock_state.get_data.return_value = {
+                "plan_id": 1,
+                "plan_name": "Premium",
+                "duration": 3,
+            }
 
-            await subscription_info_and_buying(mock_callback_query, session)
+            sub_repo.create.return_value = MagicMock()
+            kb_instance = MagicMock()
+            return_kb.return_value = kb_instance
 
-        sub_repo.get_by_user.assert_called_once_with(None)
+            callback_data = SubscriptionCallback(
+                action=SubscriptionAction.BUY,
+            )
 
-    @pytest.mark.asyncio
-    async def test_subscription_callback_data_validation(self):
-        callback_data = SubscriptionCallback(
-            action=SubscriptionAction.INFO
-        )
+            await handlers.purchase_subscription(
+                mock_callback_query,
+                callback_data,
+                session,
+                mock_state,
+            )
 
-        assert callback_data.action == SubscriptionAction.INFO
-        assert callback_data.month_duration is None
-        assert callback_data.subscription_type is None
-
-        callback_data_with_params = SubscriptionCallback(
-            action=SubscriptionAction.BUY,
-            month_duration=6,
-            subscription_type=SubscriptionType.PREMIUM
-        )
-
-        assert callback_data_with_params.action == SubscriptionAction.BUY
-        assert callback_data_with_params.month_duration == 6
-        assert callback_data_with_params.subscription_type == SubscriptionType.PREMIUM
+            sub_repo.create.assert_awaited()
+            mock_callback_query.message.edit_text.assert_called_once()
+            _, kwargs = mock_callback_query.message.edit_text.call_args
+            assert "подписка Premium 3 месяцев выдана" in kwargs["text"]
+            assert kwargs["reply_markup"] == kb_instance
+            mock_state.clear.assert_awaited_once()

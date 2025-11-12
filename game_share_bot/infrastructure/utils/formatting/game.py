@@ -1,6 +1,7 @@
 from typing import Optional
 
 from game_share_bot.infrastructure.models import Game
+from game_share_bot.domain.enums.disc_status import DiscStatus
 
 
 def format_game_short(game: Game) -> str:
@@ -11,11 +12,13 @@ def format_game_short(game: Game) -> str:
     text += f"/game_{game.id}"
     return text
 
+
 def format_game_full(
         game: Game,
         available_discs_count: int,
         user_queue_position: int | None,
-        availability_text) -> str:
+        availability_text
+) -> str:
     if user_queue_position is not None:
         queue_status_text = f"Ваша позиция в очереди: {user_queue_position}"
     else:
@@ -31,24 +34,52 @@ def format_game_full(
     else:
         categories_text = "🏷️ Категории не указаны"
 
-    return (f"🎮 <b>{game.title}</b>\n\n"
-            f"{game.description}\n\n"
-            f"{categories_text}\n\n"
-            f"{availability_text}\n\n"
-            f"{queue_status_text}\n\n"
-            f"/game_{game.id}")
+    return (
+        f"🎮 <b>{game.title}</b>\n\n"
+        f"{game.description}\n\n"
+        f"{categories_text}\n\n"
+        f"{availability_text}\n\n"
+        f"{queue_status_text}\n\n"
+        f"/game_{game.id}"
+    )
+
 
 def format_game_text_full(title: str, description: str) -> str:
-
     text = f"🎮 <b>{title}</b>\n\n"
     text += f"{description}\n\n"
     return text
 
+
 def format_games_list(games: list[Game]) -> str:
-    games_list = []
+    if not games:
+        return "Нет доступных игр."
+
+    result: list[str] = []
+
     for game in games:
-        game_text = f"🎮 {game.title}\n\n{game.description}\n\n/game_{game.id}"
-        games_list.append(game_text)
+        discs = getattr(game, "discs", []) or []
+        total = len(discs)
+        if total == 0:
+            continue
 
-    return "\n\n---\n\n".join(games_list)
+        available = sum(1 for d in discs if d.status_id == DiscStatus.AVAILABLE)
+        if available <= 0:
+            continue
 
+
+        if game.categories:
+            genres = ", ".join(category.name for category in game.categories)
+        else:
+            genres = "Без жанра"
+
+        block = (
+            f"{game.title}  ({available} / {total} дисков)\n"
+            f"{genres}\n"
+            f"/game_{game.id}"
+        )
+        result.append(block)
+
+    if not result:
+        return "Нет доступных игр."
+
+    return "\n\n".join(result)
