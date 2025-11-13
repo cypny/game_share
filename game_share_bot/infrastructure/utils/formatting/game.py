@@ -47,8 +47,8 @@ def format_game_text_full(title: str, description: str) -> str:
 def format_games_list(games: list[Game]) -> str:
     games_list = []
     for game in games:
-        game_text = f"🎮 {game.title}\n\n{game.description}\n\n/game_{game.id}"
+        game_text = f"🎮 {game.title}  /game_{game.id}"
         games_list.append(game_text)
 
-    return "\n\n---\n\n".join(games_list)
+    return "\n\n".join(games_list)
 

@@ -3,7 +3,7 @@ from sqlalchemy.orm import selectinload
 
 from game_share_bot.domain.enums import DiscStatus, RentalStatus
 from game_share_bot.infrastructure.models import QueueEntry, Disc, Rental, User
-from game_share_bot.scheduler.global_vars import job_container
+from game_share_bot.scheduler.job_container import job_container
 
 
 async def update_queue_to_rental():

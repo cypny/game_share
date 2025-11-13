@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
 from .base import Base
+from ...domain.enums.subscription_status import SubscriptionStatus
 
 
 class User(Base):
@@ -21,8 +22,16 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default="user")
 
     rentals: Mapped[list["Rental"]] = relationship(back_populates="user")
-    subscription: Mapped["Subscription"] = relationship(back_populates="user")
+    subscriptions: Mapped[list["Subscription"]] = relationship(back_populates="user")
     queues: Mapped[list["QueueEntry"]] = relationship(
         "QueueEntry",
         back_populates="user"
     )
+
+    @property
+    def subscription(self) -> "Subscription | None":
+        """Возвращает активную подписку пользователя"""
+        for sub in self.subscriptions:
+            if sub.status == SubscriptionStatus.ACTIVE:
+                return sub
+        return None

@@ -33,48 +33,17 @@ class GameRepository(BaseRepository[Game]):
 
     async def search_games(self, query: str, skip=0, take=5) ->  tuple[list[Game], int]:
         """Возвращает найденные игры и их общее количество"""
-        cat_match = (
-            select(func.count(GameCategory.id))
-            .join(Game.categories)
-            .where(GameCategory.name.ilike(f"%{query}%"))
-            .correlate(Game)
-            .scalar_subquery()
-        )
-
         stmt = (
-            select(
-                Game,
-                (
-                        case((Game.title.ilike(f"%{query}%"), 3), else_=0) +
-                        case((Game.description.ilike(f"%{query}%"), 1), else_=0) +
-                        cat_match
-                ).label("score")
-            )
-            .options(selectinload(Game.categories))
-            .where(
-                Game.title.ilike(f"%{query}%")
-                | Game.description.ilike(f"%{query}%")
-                | Game.categories.any(GameCategory.name.ilike(f"%{query}%"))
-            )
-            .order_by(text("score DESC"))
-            .order_by()
+            select(Game)
+            # .where(func.levenshtein(Game.title, query) <= 3)
+            .order_by(func.levenshtein(Game.title, query))
             .offset(skip)
             .limit(take)
         )
-
-        count_stmt = (
-            select(func.count(Game.id))
-            .where(
-                Game.title.ilike(f"%{query}%")
-                | Game.description.ilike(f"%{query}%")
-                | Game.categories.any(GameCategory.name.ilike(f"%{query}%"))
-            )
-        )
-
         result = await self.session.execute(stmt)
-        count_result = await self.session.execute(count_stmt)
-
         games = result.scalars().all()
-        total_count = count_result.scalar()
 
-        return games, total_count
+        count_stmt = select(func.count()).select_from(self.model)
+        count =  await self.session.scalar(count_stmt)
+
+        return games, count

@@ -16,7 +16,8 @@ dependencies = [
     "asyncpg (==0.30.0)",
     "greenlet (>=3.2.4,<4.0.0)",
     "aiosqlite (>=0.21.0,<0.22.0)", # ???
-    "APScheduler (>=3.11.0, <4.0.0)"
+    "APScheduler (>=3.11.0, <4.0.0)",
+    "yookassa (>=3.8.0,<4.0.0)"
 ]
 
 [build-system]
