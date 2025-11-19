@@ -3,15 +3,13 @@ DOCKER_COMPOSE_RUN := $(DOCKER_COMPOSE) run --rm
 DOCKER_RUN_BOT := $(DOCKER_COMPOSE_RUN) bot
 
 
-# Вот сюда тыкайте и все заработает (надеюсь)
-# если не заработает - попробуйте перед этим сделать make reset
-run:
-	$(MAKE) up
-	$(MAKE) migrate
-	$(MAKE) start_bot
+# Запуск контейнеров
+up:
+	$(DOCKER_COMPOSE) up
 
 # Пересобирает контейнеры, очищает бд, удаляет текущие миграции, создает новую и применяет ее
 reset:
+	${DOCKER_COMPOSE} down -v
 	$(MAKE) build
 	$(MAKE) up
 	$(MAKE) drop_db
@@ -25,7 +23,7 @@ build:
 	${DOCKER_COMPOSE} build
 
 # Запуск контейнеров в фоне
-up:
+up-d:
 	$(DOCKER_COMPOSE) up -d
 
 # Остановка контейнеров
@@ -47,6 +45,8 @@ drop_db:
 		-d gameshare \
 		-f /app/sql/drop.sql
 
-# Запуск бота (контейнеры должны быть запущены)
+# Запуск бота (перед запуском применяется миграция)
 start_bot:
-	$(DOCKER_RUN_BOT) python -m game_share_bot
+	alembic upgrade head
+	python -m game_share_bot
+
