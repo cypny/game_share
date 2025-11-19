@@ -1,7 +1,7 @@
 DOCKER_COMPOSE := docker compose
 DOCKER_COMPOSE_RUN := $(DOCKER_COMPOSE) run --rm
 DOCKER_RUN_BOT := $(DOCKER_COMPOSE_RUN) bot
-
+PSQL := exec -e PGPASSWORD=postgres db psql -U postgres -d gameshare
 
 # Запуск контейнеров
 up:
@@ -11,12 +11,21 @@ up:
 reset:
 	${DOCKER_COMPOSE} down -v
 	$(MAKE) build
-	$(MAKE) up
+	$(MAKE) up-d
+	$(MAKE) wait_db
 	$(MAKE) drop_db
 	rm -f alembic/versions/*.py
 	$(MAKE) migration
 	$(MAKE) migrate
 	$(MAKE) down
+
+# Проверяет, запущена ли бд; ждет запуска
+wait_db:
+	@echo "Waiting for DB to become healthy..."
+	@until [ "$$(docker inspect --format='{{.State.Health.Status}}' $$(docker compose ps -q db))" = "healthy" ]; do \
+		sleep 2; \
+	done
+	@echo "DB is healthy!"
 
 # Сборка контейнеров
 build:
@@ -40,10 +49,10 @@ migrate:
 
 # Удаление всех таблиц в бд (контейнеры должны быть запущены)
 drop_db:
-	$(DOCKER_COMPOSE) exec -e PGPASSWORD=postgres db \
-		psql -U postgres \
-		-d gameshare \
-		-f /app/sql/drop.sql
+	$(PSQL) -f /app/sql/drop.sql
+
+init_db:
+	$(PSQL) -f /app/sql/init.sql
 
 # Запуск бота (перед запуском применяется миграция)
 start_bot:
