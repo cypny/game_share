@@ -1,12 +1,12 @@
-from aiogram import Router, F
+from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import MenuCallback, RentalCallback
-from game_share_bot.core.keyboards import return_kb, rentals_kb
-from game_share_bot.domain.enums import RentalStatus, DiscStatus, MenuSection
+from game_share_bot.core.keyboards import rentals_kb, return_kb
+from game_share_bot.domain.enums import DiscStatus, MenuSection, RentalStatus
 from game_share_bot.infrastructure.models import Rental
-from game_share_bot.infrastructure.repositories import RentalRepository, DiscRepository
+from game_share_bot.infrastructure.repositories import DiscRepository, RentalRepository
 from game_share_bot.infrastructure.utils import get_logger
 from game_share_bot.infrastructure.utils.formatting import format_rented_disks_message
 

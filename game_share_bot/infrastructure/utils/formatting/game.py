@@ -1,5 +1,3 @@
-from typing import Optional
-
 from game_share_bot.infrastructure.models import Game
 
 
@@ -10,6 +8,7 @@ def format_game_short(game: Game) -> str:
     text += f"{desc_short}\n\n"
     text += f"/game_{game.id}"
     return text
+
 
 def format_game_full(
         game: Game,
@@ -38,11 +37,12 @@ def format_game_full(
             f"{queue_status_text}\n\n"
             f"/game_{game.id}")
 
-def format_game_text_full(title: str, description: str) -> str:
 
+def format_game_text_full(title: str, description: str) -> str:
     text = f"🎮 <b>{title}</b>\n\n"
     text += f"{description}\n\n"
     return text
+
 
 def format_games_list(games: list[Game]) -> str:
     games_list = []
@@ -51,4 +51,3 @@ def format_games_list(games: list[Game]) -> str:
         games_list.append(game_text)
 
     return "\n\n".join(games_list)
-
