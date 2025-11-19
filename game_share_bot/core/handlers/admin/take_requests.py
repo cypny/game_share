@@ -1,17 +1,18 @@
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from game_share_bot.core.callbacks import RentalCallback, AdminCallback
+from game_share_bot.core.callbacks import AdminCallback, RentalCallback
 from game_share_bot.core.filters import IsAdmin
 from game_share_bot.core.keyboards import rental_actions_confirmation_kb, return_to_admin_panel_kb
-from game_share_bot.domain.enums import RentalStatus, AdminAction
+from game_share_bot.domain.enums import AdminAction, RentalStatus
 from game_share_bot.infrastructure.repositories import RentalRepository
 from game_share_bot.infrastructure.utils import get_logger
-from game_share_bot.infrastructure.utils.formatting.rental import format_rental_full, format_pending_take_message
+from game_share_bot.infrastructure.utils.formatting.rental import format_pending_take_message, format_rental_full
 
 router = Router()
 logger = get_logger(__name__)
+
 
 @router.message(F.text.startswith("/rental_"), IsAdmin())
 async def cmd_rental(message: Message, session: AsyncSession):
@@ -24,6 +25,7 @@ async def cmd_rental(message: Message, session: AsyncSession):
         text=format_rental_full(rental),
         parse_mode="HTML",
     )
+
 
 @router.callback_query(AdminCallback.filter_by_action(AdminAction.VIEW_TAKE_REQUESTS), IsAdmin())
 async def show_take_request(callback: RentalCallback, session: AsyncSession):
@@ -72,6 +74,7 @@ async def confirm_return_request(callback: CallbackQuery, callback_data: RentalC
     except Exception as e:
         logger.error(f"Ошибка при подтверждении возврата: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при подтверждении возврата")
+
 
 @router.callback_query(RentalCallback.filter(F.action == "reject_take"))
 async def reject_return_request(callback: CallbackQuery, callback_data: RentalCallback, session: AsyncSession):

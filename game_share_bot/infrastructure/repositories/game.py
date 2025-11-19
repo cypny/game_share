@@ -1,13 +1,10 @@
-from typing import Any
-
-from sqlalchemy import select, func, case, text
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
-from game_share_bot.infrastructure.models import Game, Disc
+from game_share_bot.infrastructure.models import Game
+
 from .base import BaseRepository
-from ..models.game import GameCategory
-from game_share_bot.domain.enums.disc_status import DiscStatus
 
 
 class GameRepository(BaseRepository[Game]):
@@ -26,113 +23,25 @@ class GameRepository(BaseRepository[Game]):
             cover_image_url=image
         )
 
-    async def get_by_id(self, game_id: int, options: Any = None) -> Game | None:
-        return await super().get_by_id(
-            game_id,
-            options=[
-                joinedload(Game.categories),
-                joinedload(Game.queues),
-                selectinload(Game.discs),
-            ]
-        )
+    async def get_by_id(self, game_id: int, options=None) -> Game | None:
+        return await super().get_by_id(game_id, options=[joinedload(Game.categories), joinedload(Game.queues)])
 
-    async def get_all_with_available_discs(self, skip: int = 0, take: int = 5) -> list[Game]:
-        available_discs = (
-            select(func.count(Disc.disc_id))
-            .where(
-                Disc.game_id == Game.id,
-                Disc.status_id == DiscStatus.AVAILABLE,
-            )
-            .correlate(Game)
-            .scalar_subquery()
-        )
-
+    async def search_games(self, query: str, skip=0, take=5) -> tuple[list[Game], int]:
+        """Возвращает найденные игры и их общее количество"""
+        # TODO: чистый левенштейн плохо работает - надо модифицировать
+        # в данный момент по запросу red dead выдает God of War
         stmt = (
             select(Game)
-            .options(
-                selectinload(Game.categories),
-                selectinload(Game.discs),
-            )
-            .where(available_discs > 0)
-            .order_by(Game.id)
+            # .where(func.levenshtein(Game.title, query) <= 3)
+            .order_by(func.levenshtein(Game.title, query))
             .offset(skip)
             .limit(take)
-        )
-
-        result = await self.session.execute(stmt)
-        return result.scalars().all()
-
-    async def count_all_with_available_discs(self) -> int:
-        available_discs = (
-            select(func.count(Disc.disc_id))
-            .where(
-                Disc.game_id == Game.id,
-                Disc.status_id == DiscStatus.AVAILABLE,
-            )
-            .correlate(Game)
-            .scalar_subquery()
-        )
-
-        stmt = select(func.count(Game.id)).where(available_discs > 0)
-
-        result = await self.session.execute(stmt)
-        return result.scalar_one()
-
-    async def search_games(self, query: str, skip: int = 0, take: int = 5) -> tuple[list[Game], int]:
-        cat_match = (
-            select(func.count(GameCategory.id))
-            .join(Game.categories)
-            .where(GameCategory.name.ilike(f"%{query}%"))
-            .correlate(Game)
-            .scalar_subquery()
-        )
-
-        available_discs = (
-            select(func.count(Disc.disc_id))
-            .where(
-                Disc.game_id == Game.id,
-                Disc.status_id == DiscStatus.AVAILABLE,
-            )
-            .correlate(Game)
-            .scalar_subquery()
-        )
-
-        base_filter = (
-            Game.title.ilike(f"%{query}%")
-            | Game.description.ilike(f"%{query}%")
-            | Game.categories.any(GameCategory.name.ilike(f"%{query}%"))
-        )
-
-        stmt = (
-            select(
-                Game,
-                (
-                    case((Game.title.ilike(f"%{query}%"), 3), else_=0)
-                    + case((Game.description.ilike(f"%{query}%"), 1), else_=0)
-                    + cat_match
-                ).label("score")
-            )
-            .options(
-                selectinload(Game.categories),
-                selectinload(Game.discs),
-            )
-            .where(base_filter)
-            .where(available_discs > 0)
-            .order_by(text("score DESC"))
-            .offset(skip)
-            .limit(take)
-        )
-
-        count_stmt = (
-            select(func.count(Game.id))
-            .where(base_filter)
-            .where(available_discs > 0)
         )
 
         result = await self.session.execute(stmt)
         games = result.scalars().all()
 
-        count_result = await self.session.execute(count_stmt)
-        total_count = count_result.scalar_one()
+        count_stmt = select(func.count()).select_from(self.model)
+        count = await self.session.scalar(count_stmt)
 
-        return games, total_count
+        return games, count

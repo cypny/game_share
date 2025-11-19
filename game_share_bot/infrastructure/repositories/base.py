@@ -1,6 +1,6 @@
-from typing import TypeVar, Generic, Type, Any
+from typing import Any, Generic, Type, TypeVar
 
-from sqlalchemy import select, update, delete, inspect, func
+from sqlalchemy import delete, func, inspect, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.infrastructure.models.base import Base
@@ -21,7 +21,7 @@ class BaseRepository(Generic[ModelType]):
         """Получить имя первичного ключа модели."""
         return inspect(self.model).primary_key[0].name
 
-    async def get_by_id(self, model_id: Any, options = None) -> ModelType | None:
+    async def get_by_id(self, model_id: Any, options=None) -> ModelType | None:
         """Получить запись по ID."""
         if options is None:
             options = []
@@ -30,7 +30,7 @@ class BaseRepository(Generic[ModelType]):
             select(self.model).options(*options).where(getattr(self.model, pk_name) == model_id)
         )
 
-    async def get_all(self, options = None, skip=0, take=None) -> list[ModelType]:
+    async def get_all(self, options=None, skip=0, take=None) -> list[ModelType]:
         """Получить все записи."""
         if not options:
             options = []
@@ -46,7 +46,7 @@ class BaseRepository(Generic[ModelType]):
         """Создать новую запись."""
         instance = self.model(**data)
         self.session.add(instance)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(instance)
         return instance
 
@@ -60,7 +60,7 @@ class BaseRepository(Generic[ModelType]):
             .returning(self.model)
         )
         result = await self.session.execute(stmt)
-        await self.session.commit()
+        await self.session.flush()
         return result.scalar_one_or_none()
 
     async def delete(self, model_id: Any) -> bool:
@@ -68,10 +68,10 @@ class BaseRepository(Generic[ModelType]):
         pk_name = self._get_primary_key_name()
         stmt = delete(self.model).where(getattr(self.model, pk_name) == model_id)
         result = await self.session.execute(stmt)
-        await self.session.commit()
+        await self.session.flush()
         return result.rowcount > 0
 
-    async def get_by_field(self, field_name: str, value: Any, options = None) -> ModelType | None:
+    async def get_by_field(self, field_name: str, value: Any, options=None) -> ModelType | None:
         """метод для поиска по любому полю."""
         options = options or []
         field = getattr(self.model, field_name)
@@ -81,10 +81,11 @@ class BaseRepository(Generic[ModelType]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_all_by_field(self, field_name: str, value: Any) -> list[ModelType]:
+    async def get_all_by_field(self, field_name: str, value: Any, options=None) -> list[ModelType]:
         """метод для поиска всех записей по полю."""
+        options = options or []
         field = getattr(self.model, field_name)
-        stmt = select(self.model).where(field == value)
+        stmt = select(self.model).options(*options).where(field == value)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
@@ -92,4 +93,3 @@ class BaseRepository(Generic[ModelType]):
         """Считает все строки в таблице."""
         stmt = select(func.count()).select_from(self.model)
         return await self.session.scalar(stmt)
-

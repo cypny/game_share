@@ -1,5 +1,3 @@
-from typing import Optional
-
 from game_share_bot.infrastructure.models import Game
 from game_share_bot.domain.enums.disc_status import DiscStatus
 
@@ -57,29 +55,7 @@ def format_games_list(games: list[Game]) -> str:
     result: list[str] = []
 
     for game in games:
-        discs = getattr(game, "discs", []) or []
-        total = len(discs)
-        if total == 0:
-            continue
+        game_text = f"🎮 {game.title}  /game_{game.id}"
+        games_list.append(game_text)
 
-        available = sum(1 for d in discs if d.status_id == DiscStatus.AVAILABLE)
-        if available <= 0:
-            continue
-
-
-        if game.categories:
-            genres = ", ".join(category.name for category in game.categories)
-        else:
-            genres = "Без жанра"
-
-        block = (
-            f"{game.title}  ({available} / {total} дисков)\n"
-            f"{genres}\n"
-            f"/game_{game.id}"
-        )
-        result.append(block)
-
-    if not result:
-        return "Нет доступных игр."
-
-    return "\n\n".join(result)
+    return "\n\n".join(games_list)

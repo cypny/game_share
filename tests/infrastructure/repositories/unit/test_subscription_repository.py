@@ -13,7 +13,7 @@ class TestSubscriptionRepository:
                    new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_subscription
 
-            result = await repo.get_by_user(mock_user)
+            result = await repo.get_all_by_user(mock_user)
 
             mock_get.assert_called_once()
             call_args = mock_get.call_args
@@ -32,7 +32,7 @@ class TestSubscriptionRepository:
                    new_callable=AsyncMock) as mock_get:
             mock_get.return_value = None
 
-            result = await repo.get_by_user(mock_user)
+            result = await repo.get_all_by_user(mock_user)
 
             mock_get.assert_called_once()
             call_args = mock_get.call_args
@@ -48,7 +48,7 @@ class TestSubscriptionRepository:
                    new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_subscription
 
-            result = await repo.get_by_user(mock_user)
+            result = await repo.get_all_by_user(mock_user)
 
             assert result is not None
             assert result.user is not None

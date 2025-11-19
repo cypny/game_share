@@ -1,22 +1,22 @@
-from aiogram import Router, F, types
-from aiogram.types import Message, CallbackQuery
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import GameCallback
-from game_share_bot.domain.enums import RentalStatus
-from game_share_bot.domain.enums.actions.game_actions import GameAction
+from game_share_bot.core.keyboards import enter_queue_kb
+from game_share_bot.domain.enums import GameAction, RentalStatus
 from game_share_bot.domain.rental.queue import get_entry_position
 from game_share_bot.infrastructure.models import User
+from game_share_bot.infrastructure.repositories import DiscRepository, GameRepository, UserRepository
 from game_share_bot.infrastructure.repositories.rental.queue_entry import QueueEntryRepository
-from game_share_bot.infrastructure.utils.formatting import format_game_full
-from game_share_bot.core.keyboards import enter_queue_kb
-from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
 from game_share_bot.infrastructure.utils import get_logger
+from game_share_bot.infrastructure.utils.formatting import format_game_full
 
 router = Router()
 logger = get_logger(__name__)
 
-#TODO: отрефакторить это чудо
+
+# TODO: отрефакторить это чудо
 @router.message(F.text.startswith("/game_"))
 async def cmd_game(message: Message, session: AsyncSession):
     tg_id = message.from_user.id
@@ -59,7 +59,6 @@ async def cmd_game(message: Message, session: AsyncSession):
         if has_rental_this_game:
             availability_text = "Вы уже арендовали эту игру"
 
-
         reply = format_game_full(game, available_discs_count, queue_position, availability_text)
 
         if game.cover_image_url:
@@ -80,6 +79,7 @@ async def cmd_game(message: Message, session: AsyncSession):
     except Exception as e:
         logger.error(f"Ошибка при получении информации об игре для пользователя {tg_id}: {str(e)}", exc_info=True)
         await message.answer("❌ Ошибка при загрузке информации об игре")
+
 
 @router.callback_query(GameCallback.filter_by_action(GameAction.REQUEST_QUEUE))
 async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback, session: AsyncSession):
@@ -110,7 +110,7 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
 
         existing_active_queue_entry = next(
             (entry for entry in user.queues
-                 if entry.game_id == game_id and entry.is_active),
+             if entry.game_id == game_id and entry.is_active),
             None
         )
         if existing_active_queue_entry:
@@ -165,6 +165,7 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
     except Exception as e:
         logger.error(f"Ошибка при взятии игры {game_id} пользователем {tg_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при взятии игры")
+
 
 async def _can_enter_queue(user: User) -> str:
     if not user.subscription:
