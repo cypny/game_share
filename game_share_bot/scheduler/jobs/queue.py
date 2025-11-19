@@ -5,7 +5,7 @@ from game_share_bot.domain.enums import DiscStatus, RentalStatus
 from game_share_bot.infrastructure.models import QueueEntry, Disc, Rental, User
 from game_share_bot.scheduler.job_container import job_container
 
-
+#TODO
 async def update_queue_to_rental():
     async with job_container.session_maker() as session:
 
