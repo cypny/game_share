@@ -1,5 +1,4 @@
 from game_share_bot.infrastructure.models import Game
-from game_share_bot.domain.enums.disc_status import DiscStatus
 
 
 def format_game_short(game: Game) -> str:
@@ -52,10 +51,10 @@ def format_games_list(games: list[Game]) -> str:
     if not games:
         return "Нет доступных игр."
 
-    result: list[str] = []
+    result = []
 
     for game in games:
         game_text = f"🎮 {game.title}  /game_{game.id}"
-        games_list.append(game_text)
+        result.append(game_text)
 
-    return "\n\n".join(games_list)
+    return "\n\n".join(result)
