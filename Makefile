@@ -1,7 +1,7 @@
 DOCKER_COMPOSE := docker compose
 DOCKER_COMPOSE_RUN := $(DOCKER_COMPOSE) run --rm
 DOCKER_RUN_BOT := $(DOCKER_COMPOSE_RUN) bot
-PSQL := exec -e PGPASSWORD=postgres db psql -U postgres -d gameshare
+PSQL := $(DOCKER_COMPOSE) exec -e PGPASSWORD=postgres db psql -U postgres -d gameshare
 
 # Запуск контейнеров
 up:
@@ -14,6 +14,7 @@ reset:
 	$(MAKE) up-d
 	$(MAKE) wait_db
 	$(MAKE) drop_db
+	$(MAKE) init_db
 	rm -f alembic/versions/*.py
 	$(MAKE) migration
 	$(MAKE) migrate
