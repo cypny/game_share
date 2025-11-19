@@ -9,8 +9,19 @@ from game_share_bot.core.handlers import routers
 from game_share_bot.core.middlewares import DbSessionMiddleware
 from game_share_bot.domain.payment.yookassa_service import init_yookassa
 from game_share_bot.infrastructure.database import init_db
-from game_share_bot.infrastructure.utils import setup_logging, get_logger
+from game_share_bot.infrastructure.utils import get_logger, setup_logging
 from game_share_bot.scheduler.scheduler import get_scheduler
+
+setup_logging()
+logger = get_logger(__name__)
+
+load_dotenv()
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+CONN_STRING_ASYNC = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@db:5432/{POSTGRES_DB}"
 
 
 async def set_default_commands(bot: Bot):
@@ -23,15 +34,6 @@ async def set_default_commands(bot: Bot):
 
 
 async def main():
-    setup_logging()
-    logger = get_logger(__name__)
-
-    load_dotenv()
-
-    BOT_TOKEN = os.getenv("BOT_TOKEN")
-    CONN_STRING_ASYNC = os.getenv("CONN_STRING_ASYNC")
-    CONN_STRING_SYNC = os.getenv("CONN_STRING_SYNC")
-
     if not BOT_TOKEN:
         logger.error("BOT_TOKEN не найден в переменных окружения")
         return
