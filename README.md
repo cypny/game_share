@@ -27,7 +27,7 @@ make reset
 ### Запуск
 
 ```bash
-make run
+make up
 ```
 
 ### Остановка приложения
@@ -56,7 +56,7 @@ poetry run python -m game_share_bot
 
 Пересобрать контейнер:
 ```bash
-docker compose build
+make build
 ```
 
 Создать новую миграцию:
