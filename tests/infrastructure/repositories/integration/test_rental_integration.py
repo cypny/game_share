@@ -1,5 +1,7 @@
 import pytest
 from datetime import datetime, timedelta
+from uuid import uuid4
+
 from game_share_bot.infrastructure.repositories.user import UserRepository
 from game_share_bot.infrastructure.repositories.game import GameRepository
 from game_share_bot.infrastructure.repositories.rental.disc import DiscRepository
@@ -27,8 +29,8 @@ class TestRentalIntegration:
         )
 
         disc_repo = DiscRepository(test_session)
-        disc1 = await disc_repo.create(disc_id=1, game_id=game.id, status_id=DiscStatus.AVAILABLE)
-        disc2 = await disc_repo.create(disc_id=2, game_id=game.id, status_id=DiscStatus.AVAILABLE)
+        disc1 = await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.AVAILABLE)
+        disc2 = await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.AVAILABLE)
 
         available_count = await disc_repo.get_available_discs_count_by_game(game.id)
         assert available_count == 2
@@ -83,8 +85,8 @@ class TestRentalIntegration:
         game = await game_repo.create(title="Popular Game", description="Very popular")
 
         disc_repo = DiscRepository(test_session)
-        disc1 = await disc_repo.create(disc_id=1, game_id=game.id, status_id=DiscStatus.AVAILABLE)
-        disc2 = await disc_repo.create(disc_id=2, game_id=game.id, status_id=DiscStatus.AVAILABLE)
+        disc1 = await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.AVAILABLE)
+        disc2 = await disc_repo.create(disc_id=uuid4(), game_id=game.id, status_id=DiscStatus.AVAILABLE)
 
         rental_repo = RentalRepository(test_session)
         rental1 = await rental_repo.create(

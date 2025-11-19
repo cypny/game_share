@@ -1,4 +1,5 @@
 from game_share_bot.infrastructure.models import Game
+from game_share_bot.domain.enums.disc_status import DiscStatus
 
 
 def format_game_short(game: Game) -> str:
@@ -14,7 +15,8 @@ def format_game_full(
         game: Game,
         available_discs_count: int,
         user_queue_position: int | None,
-        availability_text) -> str:
+        availability_text
+) -> str:
     if user_queue_position is not None:
         queue_status_text = f"Ваша позиция в очереди: {user_queue_position}"
     else:
@@ -30,12 +32,14 @@ def format_game_full(
     else:
         categories_text = "🏷️ Категории не указаны"
 
-    return (f"🎮 <b>{game.title}</b>\n\n"
-            f"{game.description}\n\n"
-            f"{categories_text}\n\n"
-            f"{availability_text}\n\n"
-            f"{queue_status_text}\n\n"
-            f"/game_{game.id}")
+    return (
+        f"🎮 <b>{game.title}</b>\n\n"
+        f"{game.description}\n\n"
+        f"{categories_text}\n\n"
+        f"{availability_text}\n\n"
+        f"{queue_status_text}\n\n"
+        f"/game_{game.id}"
+    )
 
 
 def format_game_text_full(title: str, description: str) -> str:
@@ -45,7 +49,11 @@ def format_game_text_full(title: str, description: str) -> str:
 
 
 def format_games_list(games: list[Game]) -> str:
-    games_list = []
+    if not games:
+        return "Нет доступных игр."
+
+    result: list[str] = []
+
     for game in games:
         game_text = f"🎮 {game.title}  /game_{game.id}"
         games_list.append(game_text)

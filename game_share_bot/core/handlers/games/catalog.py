@@ -23,7 +23,7 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
         await callback.message.edit_text(
             reply,
             parse_mode="HTML",
-            reply_markup=reply_markup
+            reply_markup=reply_markup,
         )
 
     except Exception as e:
@@ -42,7 +42,7 @@ async def search_game(message: types.Message, session: AsyncSession):
     await message.answer(
         reply,
         parse_mode="HTML",
-        reply_markup=reply_markup
+        reply_markup=reply_markup,
     )
 
 
@@ -70,6 +70,7 @@ async def _process_search_game(
             skip=skip,
             take=take
         )
+        safe_query = query
 
     total_pages = (total_games + page_size - 1) // page_size
     games_str = format_games_list(games)

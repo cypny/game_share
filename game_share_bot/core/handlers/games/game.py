@@ -99,7 +99,10 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
         if not user:
             await callback.answer("❌ Сначала нужно зарегистрироваться")
             return
-
+        game = await game_repo.get_by_id(game_id)
+        if not game:
+            await callback.answer("❌ Игра не найдена")
+            return
         message = await _can_enter_queue(user)
         if message:
             await callback.answer(message)
@@ -120,10 +123,7 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
             await callback.answer("❌ Все диски этой игры заняты")
             return
 
-        game = await game_repo.get_by_id(game_id)
-        if not game:
-            await callback.answer("❌ Игра не найдена")
-            return
+
 
         new_entry = await queue_repo.create_queue_entry(user.id, game_id)
         logger.info(f"{new_entry}")
