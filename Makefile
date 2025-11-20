@@ -60,3 +60,7 @@ start_bot:
 	alembic upgrade head
 	python -m game_share_bot
 
+# Запуск тестов
+test:
+	poetry run pytest
+
