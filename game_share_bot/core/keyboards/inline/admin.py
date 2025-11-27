@@ -85,7 +85,7 @@ def add_game_image_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                return_button(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL)),
+                return_button(AdminCallback(action=AdminAction.MANAGE_LIBRARY)),
                 admin_button("Пропустить", AdminAction.SKIP_IMAGE_INPUT),
             ]
         ]
