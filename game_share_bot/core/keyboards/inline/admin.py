@@ -80,7 +80,6 @@ def admin_manage_library_kb() -> InlineKeyboardMarkup:
         ]
     )
 
-
 def add_game_image_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[

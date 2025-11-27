@@ -7,7 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import AdminCallback, ConfirmationCallback
 from game_share_bot.core.filters import IsAdmin
-from game_share_bot.core.handlers.utils import cancel_admin_action, get_list_of_categories_message
+from game_share_bot.core.handlers.utils import (
+    cancel_admin_action,
+    get_game_adding_confirmation_text,
+    get_list_of_categories_message,
+    add_game,
+)
 from game_share_bot.core.keyboards import confirmation_kb
 from game_share_bot.core.keyboards.inline.admin import add_game_image_kb, return_to_admin_manage_library_panel_kb
 from game_share_bot.core.services.admin import try_parse_categories
@@ -15,7 +20,6 @@ from game_share_bot.core.states import AddGameState
 from game_share_bot.domain.enums import AdminAction
 from game_share_bot.infrastructure.repositories import GameRepository
 from game_share_bot.infrastructure.utils import get_logger
-from game_share_bot.infrastructure.utils.formatting import format_game_text_full
 
 router = Router()
 logger = get_logger(__name__)
@@ -44,7 +48,7 @@ async def handle_title_and_request_category(message: Message, session: AsyncSess
 
 
 @router.message(AddGameState.waiting_for_categories, IsAdmin())
-async def handle_categories_and_request_description(message: Message, session: AsyncSession, state: FSMContext):
+async def handle_categories_and_request_discs_count(message: Message, session: AsyncSession, state: FSMContext):
     categories = await try_parse_categories(message.text, session)
     if categories is None:
         await message.answer(
@@ -53,9 +57,26 @@ async def handle_categories_and_request_description(message: Message, session: A
         )
     else:
         await state.update_data({"categories": categories})
-        await message.answer("Введите описание игры:", reply_markup=return_to_admin_manage_library_panel_kb())
-        await state.set_state(AddGameState.waiting_for_description)
-        await state.set_state(AddGameState.waiting_for_description)
+        await message.answer(
+            "Введите кол-во физических копий игры:\n\n"
+            "(вы также сможете изменить этот параметр отдельно после добавления)",
+            reply_markup=return_to_admin_manage_library_panel_kb(),
+        )
+        await state.set_state(AddGameState.waiting_for_discs_count)
+
+
+@router.message(AddGameState.waiting_for_discs_count, IsAdmin())
+async def handle_discs_count_and_request_description(message: Message, state: FSMContext):
+    try:
+        discs_count = int(message.text)
+    except ValueError:
+        await message.answer("Некорректный ввод - кол-во дисков должно быть числом!")
+        return None
+
+    await state.update_data({"discs_count": discs_count})
+    await message.answer("Введите описание игры:", reply_markup=return_to_admin_manage_library_panel_kb())
+    await state.set_state(AddGameState.waiting_for_description)
+    return None
 
 
 @router.message(AddGameState.waiting_for_description, IsAdmin())
@@ -72,7 +93,7 @@ async def handle_image_and_request_confirmation(message: Message, state: FSMCont
     try:
         await message.answer_photo(
             photo=data["image"],
-            caption=f"Подтвердите добавление игры:\n\n{format_game_text_full(data["title"], data["description"])}",
+            caption=get_game_adding_confirmation_text(data),
             parse_mode=ParseMode.HTML,
             reply_markup=confirmation_kb(),
         )
@@ -93,7 +114,7 @@ async def skip_image_and_request_confirmation(callback: CallbackQuery, state: FS
     data = await state.get_data()
     await callback.answer()
     await callback.message.edit_text(
-        f"Подтвердите добавление игры:\n\n{format_game_text_full(data["title"], data["description"])}",
+        get_game_adding_confirmation_text(data),
         parse_mode=ParseMode.HTML,
         reply_markup=confirmation_kb(),
     )
@@ -101,9 +122,9 @@ async def skip_image_and_request_confirmation(callback: CallbackQuery, state: FS
 
 
 @router.callback_query(AddGameState.waiting_for_confirmation, ConfirmationCallback.filter_confirmed(), IsAdmin())
-async def add_game(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
+async def add_game_handler(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     data = await state.get_data()
-    result = await GameRepository(session).try_create(**data)
+    result = await add_game(session, data)
     await callback.answer()
     await callback.message.delete()
     if result is None:

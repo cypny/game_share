@@ -1,4 +1,4 @@
-from game_share_bot.infrastructure.models import Game
+from game_share_bot.infrastructure.models import Game, GameCategory
 
 
 def format_game_short(game: Game) -> str:
@@ -41,8 +41,13 @@ def format_game_full(
     )
 
 
-def format_game_text_full(title: str, description: str) -> str:
+def format_game_text_full(title: str, description: str, discs_count: int, categories: list[GameCategory]) -> str:
     text = f"🎮 <b>{title}</b>\n\n"
+    if categories:
+        text += f"🏷️ Категории: {', '.join([category.name for category in categories])}\n"
+    else:
+        text += "🏷️ Категории не указаны\n"
+    text += f"💿 Кол-во дисков: {discs_count}\n\n"
     text += f"{description}\n\n"
     return text
 
