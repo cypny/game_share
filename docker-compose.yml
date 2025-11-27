@@ -30,11 +30,24 @@ services:
       - poetry_cache:/root/.cache/pypoetry
     env_file:
       - .env
+    depends_on:
+      - db
+      - redis
     command: make start_bot
+
+
+  redis:
+    image: redis:8-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
 
 volumes:
   pgdata:
+  redis_data:
   site_packages:
   usr_local_bin:
   poetry_cache:
