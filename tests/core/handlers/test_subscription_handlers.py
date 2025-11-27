@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock, patch, MagicMock
 
 from game_share_bot.core.callbacks.subscription import SubscriptionCallback
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
-from game_share_bot.domain.enums.subscription.type import SubscriptionType
 from game_share_bot.core.states.subscription.subscribe import SubscriptionState
 
 

@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import AdminCallback, RentalCallback
-from game_share_bot.core.keyboards import rental_actions_confirmation_kb, return_to_admin_panel_kb
+from game_share_bot.core.keyboards import rental_actions_confirmation_kb, return_to_admin_main_panel_kb
 from game_share_bot.domain.enums import AdminAction, RentalStatus
 from game_share_bot.infrastructure.models import Rental
 from game_share_bot.infrastructure.repositories import RentalRepository
@@ -43,7 +43,7 @@ async def show_return_requests(callback: CallbackQuery, session: AsyncSession):
 
         text = _format_pending_returns_message(pending_returns)
         markup = rental_actions_confirmation_kb(pending_returns,
-                                                "return") if pending_returns else return_to_admin_panel_kb()
+                                                "return") if pending_returns else return_to_admin_main_panel_kb()
 
         await callback.message.edit_text(text, reply_markup=markup)
         logger.info(f"Список запросов на возврат отправлен администратору {user_id}")

@@ -2,7 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from game_share_bot.infrastructure.models import Game
+from game_share_bot.infrastructure.models import Game, GameCategory
 
 from .base import BaseRepository
 
@@ -13,15 +13,16 @@ class GameRepository(BaseRepository[Game]):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
 
-    async def try_create(self, title: str, description: str, image: str | None = None) -> Game | None:
+    async def try_create(
+        self, title: str, description: str, categories: list[GameCategory], image: str | None = None
+    ) -> Game | None:
         if await self.get_by_field("title", title) is not None:
             return None
 
-        return await super().create(
-            title=title,
-            description=description,
-            cover_image_url=image
-        )
+        return await super().create(title=title,
+                                    description=description,
+                                    categories=categories,
+                                    cover_image_url=image)
 
     async def get_by_id(self, game_id: int, options=None) -> Game | None:
         return await super().get_by_id(game_id, options=[joinedload(Game.categories), joinedload(Game.queues)])

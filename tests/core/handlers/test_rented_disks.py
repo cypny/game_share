@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch
 from datetime import datetime, timedelta
 from game_share_bot.core.callbacks import RentalCallback
 from game_share_bot.domain.enums import RentalStatus, DiscStatus

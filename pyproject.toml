@@ -17,7 +17,8 @@ dependencies = [
     "greenlet (>=3.2.4,<4.0.0)",
     "aiosqlite (>=0.21.0,<0.22.0)", # ???
     "APScheduler (>=3.11.0, <4.0.0)",
-    "yookassa (>=3.8.0,<4.0.0)"
+    "yookassa (>=3.8.0,<4.0.0)",
+    "redis (>=7.1.0,<8.0.0)"
 ]
 
 [build-system]
@@ -38,3 +39,9 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.format]
+quote-style = "double"

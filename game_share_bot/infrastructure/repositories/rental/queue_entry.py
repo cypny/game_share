@@ -3,10 +3,9 @@ from typing import List
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 
-from game_share_bot.domain.enums import DiscStatus
-from game_share_bot.infrastructure.models import QueueEntry, Disc, Game
+from game_share_bot.infrastructure.models import QueueEntry, Game
 from game_share_bot.infrastructure.repositories.base import BaseRepository
 
 from dataclasses import dataclass
