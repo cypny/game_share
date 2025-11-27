@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import AdminCallback
 from game_share_bot.core.filters import IsAdmin
-from game_share_bot.core.keyboards import return_kb, return_to_admin_panel_kb
+from game_share_bot.core.keyboards import return_kb, return_to_admin_main_panel_kb
 from game_share_bot.core.states import AppointState
 from game_share_bot.domain.enums import AdminAction
 from game_share_bot.infrastructure.repositories import UserRepository
@@ -39,4 +39,4 @@ async def appoint_admin(message: Message, session: AsyncSession, state: FSMConte
             answer_text = (f"Пользователь {tg_id} не найден, возможно он не зарегистрирован\n\n"
                            f"Роль администратора можно выдать только зарегистрированным пользователям")
 
-    await message.answer(answer_text, reply_markup=return_to_admin_panel_kb())
+    await message.answer(answer_text, reply_markup=return_to_admin_main_panel_kb())

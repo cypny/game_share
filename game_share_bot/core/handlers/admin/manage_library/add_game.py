@@ -8,12 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from game_share_bot.core.callbacks import AdminCallback, ConfirmationCallback
 from game_share_bot.core.filters import IsAdmin
 from game_share_bot.core.handlers.utils import cancel_admin_action
-from game_share_bot.core.keyboards import add_game_image_kb, confirmation_kb, return_to_admin_panel_kb
+from game_share_bot.core.keyboards import confirmation_kb
+from game_share_bot.core.keyboards.inline.admin import return_to_admin_manage_library_panel_kb
 from game_share_bot.core.states import AddGameState
 from game_share_bot.domain.enums import AdminAction
 from game_share_bot.infrastructure.repositories import GameRepository
-from game_share_bot.infrastructure.utils.formatting import format_game_text_full
 from game_share_bot.infrastructure.utils import get_logger
+from game_share_bot.infrastructure.utils.formatting import format_game_text_full
 
 router = Router()
 logger = get_logger(__name__)
@@ -22,21 +23,21 @@ logger = get_logger(__name__)
 @router.callback_query(AdminCallback.filter_by_action(AdminAction.ADD_GAME), IsAdmin())
 async def request_title(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.edit_text("Введите название игры:", reply_markup=return_to_admin_panel_kb())
+    await callback.message.edit_text("Введите название игры:", reply_markup=return_to_admin_manage_library_panel_kb())
     await state.set_state(AddGameState.waiting_for_title)
 
 
 @router.message(AddGameState.waiting_for_title, IsAdmin())
 async def handle_title_and_request_description(message: Message, state: FSMContext):
     await state.update_data({"title": message.text})
-    await message.answer("Введите описание игры:", reply_markup=return_to_admin_panel_kb())
+    await message.answer("Введите описание игры:", reply_markup=return_to_admin_manage_library_panel_kb())
     await state.set_state(AddGameState.waiting_for_description)
 
 
 @router.message(AddGameState.waiting_for_description, IsAdmin())
 async def handle_description_and_request_image(message: Message, state: FSMContext):
     await state.update_data({"description": message.text})
-    await message.answer("Введите image url (опционально):", reply_markup=add_game_image_kb())
+    await message.answer("Введите image url (опционально):", reply_markup=return_to_admin_manage_library_panel_kb())
     await state.set_state(AddGameState.waiting_for_image)
 
 
@@ -54,7 +55,7 @@ async def handle_image_and_request_confirmation(message: Message, state: FSMCont
     except TelegramBadRequest:
         await message.answer("Что-то пошло не по плану(\n"
                              "Проверьте корректность URL",
-                             reply_markup=return_to_admin_panel_kb())
+                             reply_markup=return_to_admin_manage_library_panel_kb())
         await state.clear()
     else:
         await state.set_state(AddGameState.waiting_for_confirmation)

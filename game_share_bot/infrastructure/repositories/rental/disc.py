@@ -12,6 +12,19 @@ class DiscRepository(BaseRepository[Disc]):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
 
+    async def add_disc(self, game_id: int) -> Disc | None:
+        """Добавить диск для игры по id"""
+        return await super().create(
+            game_id=game_id,
+            status_id=DiscStatus.AVAILABLE
+        )
+
+    async def try_delete_disc(self, game_id: int) -> bool:
+        disc_to_delete = await self.get_available_disc_by_game(game_id)
+        if disc_to_delete is None:
+            return False
+        return await super().delete(disc_to_delete.disc_id)
+
     async def get_available_disc_by_game(self, game_id: int) -> Disc | None:
         """Получить первый доступный диск для игры"""
         stmt = select(Disc).where(
@@ -20,6 +33,12 @@ class DiscRepository(BaseRepository[Disc]):
         ).limit(1)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_disc_count_by_game(self, game_id: int) -> int:
+        """Получить общее количество дисков для игры"""
+        stmt = select(func.count(Disc.disc_id)).where(Disc.game_id == game_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
 
     async def get_available_discs_count_by_game(self, game_id: int) -> int:
         """Получить количество доступных дисков для игры"""
