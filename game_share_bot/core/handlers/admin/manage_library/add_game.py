@@ -18,7 +18,6 @@ from game_share_bot.core.keyboards.inline.admin import add_game_image_kb, return
 from game_share_bot.core.services.admin import try_parse_categories
 from game_share_bot.core.states import AddGameState
 from game_share_bot.domain.enums import AdminAction
-from game_share_bot.infrastructure.repositories import GameRepository
 from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()

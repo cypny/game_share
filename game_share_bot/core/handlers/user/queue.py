@@ -3,10 +3,9 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import MenuCallback, RentalCallback
-from game_share_bot.core.keyboards import return_kb
 from game_share_bot.core.keyboards.inline.queue_page import my_queue_kb
 from game_share_bot.domain.enums import MenuSection, RentalStatus
-from game_share_bot.infrastructure.repositories import UserRepository, RentalRepository, DiscRepository
+from game_share_bot.infrastructure.repositories import UserRepository, RentalRepository
 from game_share_bot.infrastructure.repositories.rental.queue_entry import QueueEntryRepository
 from game_share_bot.infrastructure.utils import get_logger
 from game_share_bot.infrastructure.utils.formatting.queue import format_my_queue
