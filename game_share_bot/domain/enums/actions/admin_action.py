@@ -15,3 +15,4 @@ class AdminAction(StrEnum):
     DELETE_GAME = "delete_game"
     ADD_DISK = "add_disk"
     DELETE_DISK = "delete_disk"
+    VIEW_STATS = "view_stats"

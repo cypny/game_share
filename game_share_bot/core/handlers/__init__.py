@@ -16,6 +16,8 @@ from .menu.rented_disks import router as rented_disks_router
 from .start import router as start_router
 from .user.queue import router as queue_router
 from .user.subscription import router as user_subscription_router
+from .user.rental_history import router as rental_history_router
+from .admin.stats import router as admin_stats_router
 
 routers = [
     # Админ панель
@@ -28,6 +30,7 @@ routers = [
     admin_delete_disc_router,
     admin_return_requests_router,
     admin_rental_router,
+    admin_stats_router,
 
     # Стартовые и основные
     start_router,
@@ -40,6 +43,7 @@ routers = [
     # Личный кабинет
     personal_cabinet_router,
     rented_disks_router,
+    rental_history_router,
 
     # Подписки и очередь
     user_subscription_router,
@@ -48,5 +52,6 @@ routers = [
     # Отладка
     debug_router,
 ]
+
 
 __all__ = ['routers']
