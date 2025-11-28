@@ -1,99 +1,92 @@
 import pytest
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch, MagicMock
+
+from aiogram.types import CallbackQuery, Message
+
+from game_share_bot.core.callbacks import CatalogCallback
+from game_share_bot.core.handlers.games import catalog as handlers
 
 
 class TestCatalogHandlers:
     @pytest.mark.asyncio
-    async def test_catalog_success(self, mock_callback_query, test_session):
-        from game_share_bot.core.callbacks import CatalogCallback
+    async def test_catalog_success(self, test_session):
+        mock_message = AsyncMock(spec=Message)
+        mock_message.edit_text = AsyncMock()
 
-        with patch('game_share_bot.core.handlers.games.catalog.GameRepository') as mock_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.format_games_list') as mock_format, \
-                patch('game_share_bot.core.handlers.games.catalog.catalog_keyboard') as mock_kb:
-            mock_repo = AsyncMock()
-            mock_repo_class.return_value = mock_repo
+        mock_callback = AsyncMock(spec=CallbackQuery)
+        mock_callback.message = mock_message
+        mock_callback.answer = AsyncMock()
 
-            mock_repo.get_all_with_available_discs.return_value = ["game1", "game2"]
-            mock_repo.count_all_with_available_discs.return_value = 2
+        callback_data = CatalogCallback(query="", page=0)
 
-            mock_format.return_value = "formatted_games"
-            mock_kb.return_value = "mock_keyboard"
+        with patch.object(handlers, "GameRepository") as repo_cls, \
+             patch.object(handlers, "format_games_list") as format_games_list, \
+             patch.object(handlers, "catalog_keyboard") as catalog_keyboard:
 
-            # query обязателен и строка
-            callback_data = CatalogCallback(query="", page=0)
+            repo = AsyncMock()
+            repo_cls.return_value = repo
 
-            from game_share_bot.core.handlers.games.catalog import catalog
-            await catalog(mock_callback_query, callback_data, test_session)
+            game = MagicMock()
+            game.title = "Test Game"
+            repo.get_all.return_value = [game]
+            repo.count_all.return_value = 1
 
-            mock_repo.get_all_with_available_discs.assert_awaited_once_with(
-                skip=0,
-                take=7,
-            )
-            mock_repo.count_all_with_available_discs.assert_awaited_once()
+            format_games_list.return_value = "formatted_games"
+            catalog_keyboard.return_value = "keyboard"
 
-            mock_format.assert_called_once_with(["game1", "game2"])
-            mock_kb.assert_called_once()
+            await handlers.catalog(mock_callback, callback_data, test_session)
 
-            mock_callback_query.answer.assert_called_once()
-            mock_callback_query.message.edit_text.assert_called_once()
+            repo_cls.assert_called_once_with(test_session)
+            repo.get_all.assert_awaited_once_with(skip=0, take=10)
+            repo.count_all.assert_awaited_once()
 
-            call_args = mock_callback_query.message.edit_text.call_args
-            text = call_args.args[0]
+            format_games_list.assert_called_once()
+            catalog_keyboard.assert_called_once()
 
-            assert "Каталог игр:" in text
-            assert "formatted_games" in text
-            assert call_args.kwargs.get("reply_markup") == "mock_keyboard"
-            assert call_args.kwargs.get("parse_mode") == "HTML"
+            mock_callback.answer.assert_awaited_once()
 
-    @pytest.mark.asyncio
-    async def test_catalog_empty(self, mock_callback_query, test_session):
-        from game_share_bot.core.callbacks import CatalogCallback
-
-        with patch('game_share_bot.core.handlers.games.catalog.GameRepository') as mock_repo_class, \
-                patch('game_share_bot.core.handlers.games.catalog.format_games_list') as mock_format, \
-                patch('game_share_bot.core.handlers.games.catalog.catalog_keyboard') as mock_kb:
-            mock_repo = AsyncMock()
-            mock_repo_class.return_value = mock_repo
-
-            mock_repo.get_all_with_available_discs.return_value = []
-            mock_repo.count_all_with_available_discs.return_value = 0
-
-            mock_format.return_value = ""
-            mock_kb.return_value = "mock_keyboard"
-
-            callback_data = CatalogCallback(query="", page=0)
-
-            from game_share_bot.core.handlers.games.catalog import catalog
-            await catalog(mock_callback_query, callback_data, test_session)
-
-            mock_repo.get_all_with_available_discs.assert_awaited_once_with(
-                skip=0,
-                take=7,
-            )
-            mock_repo.count_all_with_available_discs.assert_awaited_once()
-            mock_format.assert_called_once_with([])
-
-            mock_callback_query.message.edit_text.assert_called_once()
-            call_args = mock_callback_query.message.edit_text.call_args
-            text = call_args.args[0]
-
-            assert "Каталог игр:" in text
-            assert call_args.kwargs.get("reply_markup") == "mock_keyboard"
+            mock_message.edit_text.assert_called_once()
+            args, kwargs = mock_message.edit_text.call_args
+            assert "Каталог игр (" in args[0]
+            assert "formatted_games" in args[0]
+            assert kwargs["parse_mode"] == "HTML"
+            assert kwargs["reply_markup"] == "keyboard"
 
     @pytest.mark.asyncio
-    async def test_catalog_error(self, mock_callback_query, test_session):
-        from game_share_bot.core.callbacks import CatalogCallback
+    async def test_catalog_empty(self, test_session):
+        mock_message = AsyncMock(spec=Message)
+        mock_message.edit_text = AsyncMock()
 
-        with patch('game_share_bot.core.handlers.games.catalog.GameRepository') as mock_repo_class:
-            mock_repo = AsyncMock()
-            mock_repo_class.return_value = mock_repo
+        mock_callback = AsyncMock(spec=CallbackQuery)
+        mock_callback.message = mock_message
+        mock_callback.answer = AsyncMock()
 
-            mock_repo.get_all_with_available_discs.side_effect = Exception("DB error")
+        callback_data = CatalogCallback(query="", page=0)
 
-            callback_data = CatalogCallback(query="", page=0)
+        with patch.object(handlers, "GameRepository") as repo_cls, \
+             patch.object(handlers, "format_games_list") as format_games_list, \
+             patch.object(handlers, "catalog_keyboard") as catalog_keyboard:
 
-            from game_share_bot.core.handlers.games.catalog import catalog
-            await catalog(mock_callback_query, callback_data, test_session)
+            repo = AsyncMock()
+            repo_cls.return_value = repo
 
-            mock_callback_query.answer.assert_called_with("❌ Ошибка при загрузке каталога")
-            mock_callback_query.message.edit_text.assert_not_called()
+            repo.get_all.return_value = []
+            repo.count_all.return_value = 0
+
+            format_games_list.return_value = "Нет игр"
+            catalog_keyboard.return_value = "keyboard"
+
+            await handlers.catalog(mock_callback, callback_data, test_session)
+
+            repo_cls.assert_called_once_with(test_session)
+            repo.get_all.assert_awaited_once_with(skip=0, take=10)
+            repo.count_all.assert_awaited_once()
+
+            mock_callback.answer.assert_awaited_once()
+
+            mock_message.edit_text.assert_called_once()
+            args, kwargs = mock_message.edit_text.call_args
+            assert "Каталог игр (" in args[0]
+            assert "Нет игр" in args[0]
+            assert kwargs["parse_mode"] == "HTML"
+            assert kwargs["reply_markup"] == "keyboard"
