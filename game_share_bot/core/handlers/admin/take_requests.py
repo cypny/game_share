@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import AdminCallback, RentalCallback
 from game_share_bot.core.filters import IsAdmin
-from game_share_bot.core.keyboards import rental_actions_confirmation_kb, return_to_admin_panel_kb
+from game_share_bot.core.keyboards import rental_actions_confirmation_kb, return_to_admin_main_panel_kb
 from game_share_bot.domain.enums import AdminAction, RentalStatus
 from game_share_bot.infrastructure.repositories import RentalRepository
 from game_share_bot.infrastructure.utils import get_logger
@@ -37,7 +37,7 @@ async def show_take_request(callback: RentalCallback, session: AsyncSession):
         pending_takes = await rental_repo.get_rentals_by_status(RentalStatus.PENDING_TAKE)
 
         text = format_pending_take_message(pending_takes)
-        markup = rental_actions_confirmation_kb(pending_takes, "take") if pending_takes else return_to_admin_panel_kb()
+        markup = rental_actions_confirmation_kb(pending_takes, "take") if pending_takes else return_to_admin_main_panel_kb()
 
         await callback.message.edit_text(
             text=text,

@@ -100,7 +100,7 @@ class DebugRepository:
             RentalStatus(id=RentalStatusEnum.PENDING_RETURN, status="pending_return"),
             RentalStatus(id=RentalStatusEnum.PENDING_TAKE, status="pending_take"),
         ]
-        logger.info(f"Добавлены статусы")
+        logger.info("Добавлены статусы")
         discs = []
         for game in test_games:
             for i in range(2):  # по 2 диска на игру
@@ -108,7 +108,7 @@ class DebugRepository:
                     game_id=game.id,
                     status_id=DiscStatusEnum.AVAILABLE
                 ))
-        logger.info(f"Добавлены диски игр")
+        logger.info("Добавлены диски игр")
         self.session.add_all(disc_statuses)
         self.session.add_all(rental_statuses)
         self.session.add_all(discs)

@@ -1,79 +1,94 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from game_share_bot.core.callbacks import AdminCallback, RentalCallback
+from game_share_bot.core.keyboards.inline.buttons import admin_button, return_button
 from game_share_bot.core.keyboards.inline.common import return_kb
-from game_share_bot.core.keyboards.inline.buttons import return_button
-from game_share_bot.infrastructure.models import Rental
 from game_share_bot.domain.enums import AdminAction
+from game_share_bot.infrastructure.models import Rental
 
 
-def return_to_admin_panel_kb() -> InlineKeyboardMarkup:
+def return_to_admin_main_panel_kb() -> InlineKeyboardMarkup:
     return return_kb(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL))
 
 
+def return_to_admin_manage_library_panel_kb() -> InlineKeyboardMarkup:
+    return return_kb(AdminCallback(action=AdminAction.MANAGE_LIBRARY))
+
+
 def rental_actions_confirmation_kb(rentals: list[Rental], action_type: str) -> InlineKeyboardMarkup:
-    """Создает клавиатуру с кнопками подтверждения/отклонения возвратов"""
     keyboard_buttons = []
 
     for rental in rentals:
         button_text = f"✅ Подтвердить возврат {rental.disc.game.title}"
-        keyboard_buttons.append([
-            InlineKeyboardButton(
-                text=button_text,
-                callback_data=RentalCallback(action=f"confirm_{action_type}", rental_id=rental.id).pack()
-            )
-        ])
+        keyboard_buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=button_text,
+                    callback_data=RentalCallback(action=f"confirm_{action_type}", rental_id=rental.id).pack(),
+                )
+            ]
+        )
 
         button_text = f"❌ Отклонить возврат {rental.disc.game.title}"
-        keyboard_buttons.append([
-            InlineKeyboardButton(
-                text=button_text,
-                callback_data=RentalCallback(action=f"reject_{action_type}", rental_id=rental.id).pack()
-            )
-        ])
-
-    keyboard_buttons.append([
-        InlineKeyboardButton(
-            text="⬅️ Назад в админ-панель",
-            callback_data=AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL).pack()
+        keyboard_buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=button_text,
+                    callback_data=RentalCallback(action=f"reject_{action_type}", rental_id=rental.id).pack(),
+                )
+            ]
         )
-    ])
+
+    keyboard_buttons.append(
+        [
+            InlineKeyboardButton(
+                text="⬅️ Назад в админ-панель",
+                callback_data=AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL).pack(),
+            )
+        ]
+    )
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
 
-def admin_kb() -> InlineKeyboardMarkup:
+def admin_main_panel_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [admin_button("Управление библиотекой", AdminAction.MANAGE_LIBRARY)],
+            [admin_button("Выдать админку", AdminAction.APPOINT)],
+            [admin_button("Статистика", AdminAction.VIEW_STATS)],
+            [
+                admin_button("Запросы на возврат", AdminAction.VIEW_RETURN_REQUESTS),
+                admin_button("Запросы на получение", AdminAction.VIEW_TAKE_REQUESTS),
+            ],
+        ]
+    )
+
+
+def admin_manage_library_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="Добавить игру",
-                                     callback_data=AdminCallback(action=AdminAction.ADD_GAME).pack()),
-                InlineKeyboardButton(text="Удалить игру",
-                                     callback_data=AdminCallback(action=AdminAction.DELETE_GAME).pack())
+                admin_button("Добавить игру", AdminAction.ADD_GAME),
+                admin_button("Удалить игру", AdminAction.DELETE_GAME),
             ],
             [
-                InlineKeyboardButton(text="Выдать админку",
-                                     callback_data=AdminCallback(action=AdminAction.APPOINT).pack())
+                admin_button("Добавить диск", AdminAction.ADD_DISK),
+                admin_button("Удалить диск", AdminAction.DELETE_DISK),
             ],
             [
-                InlineKeyboardButton(text="📋 Запросы на возврат",
-                                     callback_data=AdminCallback(action=AdminAction.VIEW_RETURN_REQUESTS).pack()),
-                InlineKeyboardButton(text="📋 Запросы на получение",
-                                     callback_data=AdminCallback(action=AdminAction.VIEW_TAKE_REQUESTS).pack())
+                return_button(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL)),
             ]
         ]
     )
+
 
 def add_game_image_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                return_button(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL)),
-                InlineKeyboardButton(text="Пропустить",
-                                     callback_data=AdminCallback(action=AdminAction.SKIP_IMAGE_INPUT).pack())
+                return_button(AdminCallback(action=AdminAction.MANAGE_LIBRARY)),
+                admin_button("Пропустить", AdminAction.SKIP_IMAGE_INPUT),
             ]
         ]
     )
-
-
-

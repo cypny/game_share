@@ -1,7 +1,9 @@
 import asyncio
 import os
 
+import redis.asyncio as redis
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import BotCommand, BotCommandScopeDefault
 from dotenv import load_dotenv
 
@@ -28,7 +30,7 @@ async def set_default_commands(bot: Bot):
     commands = [
         BotCommand(command="start", description="Перезапуск бота"),
         BotCommand(command="help", description="Помощь"),
-        BotCommand(command="menu", description="Главное меню")
+        BotCommand(command="menu", description="Главное меню"),
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
@@ -52,8 +54,11 @@ async def main():
         return
 
     bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher()
 
+    redis_client = redis.Redis(host="redis", port=6379, db=0)
+    storage = RedisStorage(redis_client)
+
+    dp = Dispatcher(storage=storage)
     dp.update.middleware(DbSessionMiddleware(session_pool=session_maker))
 
     await set_default_commands(bot)
