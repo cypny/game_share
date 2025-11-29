@@ -58,6 +58,10 @@ def admin_kb() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(text="📋 Запросы на возврат",
                                      callback_data=AdminCallback(action=AdminAction.VIEW_RETURN_REQUESTS).pack())
+            ],
+            [
+                InlineKeyboardButton(text="Создать рассылку",
+                                     callback_data=AdminCallback(action=AdminAction.CREATE_NOTIFICATION).pack())
             ]
         ]
     )
@@ -69,6 +73,23 @@ def add_game_image_kb() -> InlineKeyboardMarkup:
                 return_button(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL)),
                 InlineKeyboardButton(text="Пропустить",
                                      callback_data=AdminCallback(action=AdminAction.SKIP_IMAGE_INPUT).pack())
+            ]
+        ]
+    )
+
+def send_notification_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Все пользователи",
+                    callback_data=AdminCallback(action=AdminAction.SEND_NOTIFICATION_TO_ALL).pack()),
+                InlineKeyboardButton(
+                    text="Пользователи с подпиской",
+                    callback_data=AdminCallback(action=AdminAction.SEND_NOTIFICATION_TO_ACTIVE).pack()),
+            ],
+            [
+                return_button(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL))
             ]
         ]
     )

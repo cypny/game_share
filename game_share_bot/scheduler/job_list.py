@@ -9,23 +9,22 @@ JOBS = [
     {
         "func": update_queue_to_rental,
         "trigger": "interval",
-        # "minutes": 10,
-        "seconds": 5,
+        "minutes": 10,
+        # "seconds": 5,
         "id": "update_queue_to_rental"
     },
     {
         "func": check_pending_subscriptions,
         "trigger": "interval",
-        # "minutes": 10,
-        "seconds": 5,
+        "minutes": 10,
+        # "seconds": 5,
         "id": "check_pending_subscriptions"
     },
     {
         "func": notify_rental_end,
-        "trigger": "interval",
-        "seconds": 5,
-        # "hour": 9,
-        # "minute": 0,
+        "trigger": "cron",
+        "hour": 9,
+        "minute": 0,
         "id": "notify_rental_end"
     },
     {
@@ -44,9 +43,9 @@ JOBS = [
     },
     {
         "func": notify_subscription_end,
-        "trigger": "interval",
-        # "minutes": 10,
-        "seconds": 5,
+        "trigger": "cron",
+        "hour": 10,
+        "minute": 0,
         "id": "notify_subscription_end"
     }
 ]
