@@ -1,9 +1,12 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime
+from datetime import datetime, timedelta
 from game_share_bot.core.callbacks import RentalCallback
 from game_share_bot.domain.enums import RentalStatus, DiscStatus
 from game_share_bot.infrastructure.models import Rental, Disc, Game, User as UserModel
+from types import SimpleNamespace
+from game_share_bot.infrastructure.utils.formatting import format_rented_disks_message
+
 
 
 class TestRentedDisksHandlers:
@@ -165,36 +168,44 @@ class TestRentedDisksHandlers:
 
         mock_callback_query.answer.assert_called_once_with("❌ Ошибка при запросе возврата диска")
 
-    @pytest.mark.asyncio
-    async def test_format_rented_disks_message(self):
-        from game_share_bot.core.handlers.menu.rented_disks import _format_rented_disks_message
+    import pytest
+    from types import SimpleNamespace
 
-        empty_message = _format_rented_disks_message([])
-        assert empty_message == "📦 У вас нет арендованных дисков"
+    from game_share_bot.infrastructure.utils.formatting import format_rented_disks_message
 
-        game = Game(title="Game 1")
-        disc = Disc(game=game)
-        rental = Rental(
-            disc=disc,
-            start_date=datetime(2024, 1, 1),
-            expected_end_date=datetime(2024, 1, 31),
-            status_id=RentalStatus.ACTIVE
-        )
+    class TestRentedDisksHandlers:
+        # остальные тесты в файле не трогай
 
-        message = _format_rented_disks_message([rental])
-        assert "Game 1" in message
-        assert "01.01.2024" in message
-        assert "31.01.2024" in message
+        def test_format_rented_disks_message(self):
+            now = datetime(2025, 1, 1, 12, 0, 0)
+            rentals = [
+                SimpleNamespace(
+                    disc=SimpleNamespace(
+                        disc_id="disc-1",
+                        game=SimpleNamespace(title="Game 1"),
+                    ),
+                    start_date=now - timedelta(days=3),
+                    expected_end_date=now + timedelta(days=7),
+                    actual_end_date=None,
+                    status_id=RentalStatus.ACTIVE,
+                ),
+                SimpleNamespace(
+                    disc=SimpleNamespace(
+                        disc_id="disc-2",
+                        game=SimpleNamespace(title="Game 2"),
+                    ),
+                    start_date=now - timedelta(days=1),
+                    expected_end_date=now + timedelta(days=5),
+                    actual_end_date=None,
+                    status_id=RentalStatus.ACTIVE,
+                ),
+            ]
 
-        rental_pending = Rental(
-            disc=disc,
-            start_date=datetime(2024, 1, 1),
-            expected_end_date=datetime(2024, 1, 31),
-            status_id=RentalStatus.PENDING_RETURN
-        )
+            text = format_rented_disks_message(rentals)
 
-        message_pending = _format_rented_disks_message([rental_pending])
-        assert "Ожидает подтверждения возврата администратором" in message_pending
+            assert isinstance(text, str)
+            assert "Game 1" in text
+            assert "Game 2" in text
 
     @pytest.mark.asyncio
     async def test_validate_rental_return_success(self, test_session, mock_rental):

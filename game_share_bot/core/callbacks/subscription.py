@@ -1,6 +1,6 @@
 from aiogram.filters.callback_data import CallbackData
 
-from game_share_bot.domain.enums import SubscriptionAction, SubscriptionType
+from game_share_bot.domain.enums import SubscriptionAction
 
 
 class SubscriptionCallback(CallbackData, prefix="sub"):

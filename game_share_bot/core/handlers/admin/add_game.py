@@ -8,12 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from game_share_bot.core.callbacks import AdminCallback, ConfirmationCallback
 from game_share_bot.core.filters import IsAdmin
 from game_share_bot.core.handlers.utils import cancel_admin_action
-from game_share_bot.core.keyboards import confirmation_kb, add_game_image_kb, return_to_admin_panel_kb
+from game_share_bot.core.keyboards import add_game_image_kb, confirmation_kb, return_to_admin_panel_kb
 from game_share_bot.core.states import AddGameState
 from game_share_bot.domain.enums import AdminAction
 from game_share_bot.infrastructure.repositories import GameRepository
-from game_share_bot.infrastructure.utils.logging import get_logger
 from game_share_bot.infrastructure.utils.formatting import format_game_text_full
+from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()
 logger = get_logger(__name__)
@@ -73,7 +73,7 @@ async def skip_image_and_request_confirmation(callback: CallbackQuery, state: FS
 
 
 @router.callback_query(AddGameState.waiting_for_confirmation,
-                       ConfirmationCallback.filter_confirmed(),  # type: ignore
+                       ConfirmationCallback.filter_confirmed(),
                        IsAdmin())
 async def add_game(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     data = await state.get_data()
@@ -90,6 +90,6 @@ async def add_game(callback: CallbackQuery, session: AsyncSession, state: FSMCon
 
 
 @router.callback_query(AddGameState.waiting_for_confirmation,
-                       ConfirmationCallback.filter_canceled())  # type: ignore
+                       ConfirmationCallback.filter_canceled())
 async def cancel_game_add(callback: CallbackQuery, state: FSMContext):
     await cancel_admin_action(callback, state)

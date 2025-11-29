@@ -1,7 +1,7 @@
 from aiogram import F
 from aiogram.filters.callback_data import CallbackData, CallbackQueryFilter
 
-from game_share_bot.domain.enums.actions.game_actions import GameAction
+from game_share_bot.domain.enums import GameAction
 
 
 class GameCallback(CallbackData, prefix="game"):

@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from game_share_bot.core.callbacks import CatalogCallback, MenuCallback, RentalCallback, SubscriptionCallback
-from game_share_bot.core.keyboards.inline.buttons import return_button
+from game_share_bot.core.keyboards.inline.buttons import return_button, to_main_menu_button
 from game_share_bot.domain.enums import MenuSection, RentalStatus, SubscriptionAction
 from game_share_bot.infrastructure.models import Rental
 
@@ -88,11 +88,6 @@ def catalog_keyboard(
         buttons.append(pagination_buttons)
 
     # Кнопка возврата
-    buttons.append([
-        InlineKeyboardButton(
-            text="◀️ В главное меню",
-            callback_data=MenuCallback(section=MenuSection.MAIN).pack()
-        )
-    ])
+    buttons.append([to_main_menu_button()])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)

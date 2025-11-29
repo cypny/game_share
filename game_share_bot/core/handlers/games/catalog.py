@@ -1,10 +1,9 @@
 from aiogram import Router, types
-from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from game_share_bot.core.callbacks import CatalogCallback, MenuCallback
-from game_share_bot.core.keyboards import return_kb, catalog_keyboard
-from game_share_bot.domain.enums import MenuSection
+from game_share_bot.core.callbacks import CatalogCallback
+from game_share_bot.core.keyboards import catalog_keyboard
 from game_share_bot.infrastructure.repositories import GameRepository
 from game_share_bot.infrastructure.utils import get_logger
 from game_share_bot.infrastructure.utils.formatting import format_games_list
@@ -24,12 +23,17 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
         await callback.message.edit_text(
             reply,
             parse_mode="HTML",
-            reply_markup=reply_markup
+            reply_markup=reply_markup,
         )
 
     except Exception as e:
+        logger.error(f"Ошибка при загрузке каталога: {e}")
         await callback.answer("❌ Ошибка при загрузке каталога")
 
+
+# TODO: слишком общий хэндлер, ловит чего не должен - ломает логику назначения админа
+# надо думать как исправить - можно оставить, и использовать FSMContext где ломает,
+# или создать раздел "поиск игры"
 @router.message(lambda message: not message.text.startswith('/'))
 async def search_game(message: types.Message, session: AsyncSession):
     query = message.text
@@ -38,8 +42,9 @@ async def search_game(message: types.Message, session: AsyncSession):
     await message.answer(
         reply,
         parse_mode="HTML",
-        reply_markup=reply_markup
+        reply_markup=reply_markup,
     )
+
 
 async def _process_search_game(
         query: str,
@@ -65,11 +70,10 @@ async def _process_search_game(
             skip=skip,
             take=take
         )
+        safe_query = query
 
     total_pages = (total_games + page_size - 1) // page_size
     games_str = format_games_list(games)
     reply = f"Каталог игр ({page + 1}/{total_pages}):\n\n{games_str}"
 
     return reply, catalog_keyboard(page, total_games, page_size, query, hide_nav_buttons=page == -1)
-
-

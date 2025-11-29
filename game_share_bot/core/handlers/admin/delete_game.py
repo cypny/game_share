@@ -9,7 +9,7 @@ from game_share_bot.core.handlers.utils import cancel_admin_action
 from game_share_bot.core.keyboards import confirmation_kb, return_to_admin_panel_kb
 from game_share_bot.core.states import DeleteGameState
 from game_share_bot.domain.enums import AdminAction
-from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository
+from game_share_bot.infrastructure.repositories import DiscRepository, GameRepository
 from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()

@@ -1,5 +1,7 @@
 import pytest
 from datetime import datetime, timedelta
+from uuid import uuid4
+
 from game_share_bot.infrastructure.repositories.rental.rental import RentalRepository
 from game_share_bot.infrastructure.repositories.user import UserRepository
 from game_share_bot.infrastructure.repositories.game import GameRepository
@@ -27,7 +29,7 @@ class TestRentalRepository:
 
         disc_repo = DiscRepository(test_session)
         disc = await disc_repo.create(
-            disc_id=1,
+            disc_id=uuid4(),
             game_id=game.id,
             status_id=DiscStatus.AVAILABLE
         )
@@ -73,7 +75,7 @@ class TestRentalRepository:
 
         disc_repo = DiscRepository(test_session)
         disc = await disc_repo.create(
-            disc_id=1,
+            disc_id=uuid4(),
             game_id=game.id,
             status_id=DiscStatus.AVAILABLE
         )
@@ -134,8 +136,8 @@ class TestRentalRepository:
         game2 = await game_repo.create(title="Game 2", description="Desc 2")
 
         disc_repo = DiscRepository(test_session)
-        disc1 = await disc_repo.create(disc_id=1, game_id=game1.id, status_id=DiscStatus.AVAILABLE)
-        disc2 = await disc_repo.create(disc_id=2, game_id=game2.id, status_id=DiscStatus.AVAILABLE)
+        disc1 = await disc_repo.create(disc_id=uuid4(), game_id=game1.id, status_id=DiscStatus.AVAILABLE)
+        disc2 = await disc_repo.create(disc_id=uuid4(), game_id=game2.id, status_id=DiscStatus.AVAILABLE)
 
         rental_repo = RentalRepository(test_session)
         rental1 = await rental_repo.create(
@@ -180,7 +182,7 @@ class TestRentalRepository:
 
         disc_repo = DiscRepository(test_session)
         disc = await disc_repo.create(
-            disc_id=1,
+            disc_id=uuid4(),
             game_id=game.id,
             status_id=DiscStatus.AVAILABLE
         )
@@ -221,7 +223,7 @@ class TestRentalRepository:
 
         disc_repo = DiscRepository(test_session)
         disc = await disc_repo.create(
-            disc_id=1,
+            disc_id=uuid4(),
             game_id=game.id,
             status_id=DiscStatus.AVAILABLE
         )
@@ -230,7 +232,7 @@ class TestRentalRepository:
         rental = await rental_repo.create(
             user_id=user.id,
             disc_id=disc.disc_id,
-            status_id=RentalStatus.ACTIVE,
+            status_id=RentalStatus.ACTIVE if False else RentalStatus.ACTIVE,
             start_date=fixed_time,
             expected_end_date=fixed_time + timedelta(days=30),
             actual_end_date=None

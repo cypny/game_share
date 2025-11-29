@@ -1,6 +1,6 @@
-from typing import TypeVar, Generic, Type, Any
+from typing import Any, Generic, Type, TypeVar
 
-from sqlalchemy import select, update, delete, inspect, func
+from sqlalchemy import delete, func, inspect, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.infrastructure.models.base import Base

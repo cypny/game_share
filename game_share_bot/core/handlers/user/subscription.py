@@ -1,26 +1,25 @@
-from aiogram import Router, F
+from datetime import datetime, timedelta, timezone
+
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timedelta, timezone
 
-from game_share_bot.core.callbacks import MenuCallback
 from game_share_bot.core.callbacks.subscription import SubscriptionCallback
 from game_share_bot.core.keyboards import (
+    confirm_subscription_buy_kb,
     return_kb,
-    subscription_actions_kb,
     select_duration_kb,
-    confirm_subscription_buy_kb
+    subscription_actions_kb,
 )
 from game_share_bot.core.keyboards.inline.subscription import payment_redirect_kb
 from game_share_bot.core.states.subscription.subscribe import SubscriptionState
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
 from game_share_bot.domain.enums.subscription_status import SubscriptionStatus
-from game_share_bot.domain.yookassa import create_payment, get_payment_status
+from game_share_bot.domain.payment.yookassa_service import create_payment, get_payment_status
 from game_share_bot.infrastructure.models import SubscriptionPlan
-from game_share_bot.infrastructure.repositories import SubscriptionRepository
-from game_share_bot.infrastructure.repositories import UserRepository
+from game_share_bot.infrastructure.repositories import SubscriptionRepository, UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 from game_share_bot.infrastructure.utils.formatting import format_subscription_info, format_subscription_plan
 
@@ -83,7 +82,7 @@ async def select_subscription_duration(
 async def confirm_subscription_buy(
         callback: CallbackQuery,
         callback_data: SubscriptionCallback,
-        state: FSMContext,):
+        state: FSMContext, ):
     await state.update_data(duration=callback_data.month_duration)
 
     sub_data = await state.get_data()
@@ -152,6 +151,7 @@ async def purchase_subscription(callback: CallbackQuery, session: AsyncSession, 
         await callback.answer("Ошибка")
 
     await state.clear()
+
 
 @router.callback_query(SubscriptionCallback.filter(F.action == SubscriptionAction.CONFIRM_YOOKASSA_PAYMENT))
 async def check_payment(callback: CallbackQuery, session: AsyncSession):

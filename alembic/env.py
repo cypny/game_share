@@ -10,7 +10,11 @@ from game_share_bot.infrastructure.models.base import Base
 
 load_dotenv()
 
-CONN_STRING = os.getenv("CONN_STRING_SYNC")
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+CONN_STRING = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@db:5432/{POSTGRES_DB}"
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

@@ -15,6 +15,14 @@ from .user.queue import router as queue_router
 from .user.subscription import router as user_subscription_router
 
 routers = [
+    # Админ панель
+    admin_panel_router,
+    admin_appoint_router,
+    admin_add_game_router,
+    admin_delete_game_router,
+    admin_return_requests_router,
+    admin_rental_router,
+
     # Стартовые и основные
     start_router,
     main_menu_router,
@@ -30,14 +38,6 @@ routers = [
     # Подписки и очередь
     user_subscription_router,
     queue_router,
-
-    # Админ панель
-    admin_panel_router,
-    admin_appoint_router,
-    admin_add_game_router,
-    admin_delete_game_router,
-    admin_return_requests_router,
-    admin_rental_router,
 
     # Отладка
     debug_router,

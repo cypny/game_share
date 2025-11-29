@@ -1,18 +1,13 @@
-from typing import Any
-
-from sqlalchemy import select, func, desc, case, text
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
 from game_share_bot.infrastructure.models import Game
+
 from .base import BaseRepository
-from ..models.game import GameCategory
 
 
 class GameRepository(BaseRepository[Game]):
-    """
-    Репозиторий для работы с моделью Game.
-    """
     model = Game
 
     def __init__(self, session: AsyncSession):
@@ -28,11 +23,13 @@ class GameRepository(BaseRepository[Game]):
             cover_image_url=image
         )
 
-    async def get_by_id(self, game_id:int, options = None) -> Game | None:
-        return await super().get_by_id(game_id, options = [joinedload(Game.categories), joinedload(Game.queues)])
+    async def get_by_id(self, game_id: int, options=None) -> Game | None:
+        return await super().get_by_id(game_id, options=[joinedload(Game.categories), joinedload(Game.queues)])
 
-    async def search_games(self, query: str, skip=0, take=5) ->  tuple[list[Game], int]:
+    async def search_games(self, query: str, skip=0, take=5) -> tuple[list[Game], int]:
         """Возвращает найденные игры и их общее количество"""
+        # TODO: чистый левенштейн плохо работает - надо модифицировать
+        # в данный момент по запросу red dead выдает God of War
         stmt = (
             select(Game)
             # .where(func.levenshtein(Game.title, query) <= 3)
@@ -40,10 +37,11 @@ class GameRepository(BaseRepository[Game]):
             .offset(skip)
             .limit(take)
         )
+
         result = await self.session.execute(stmt)
         games = result.scalars().all()
 
         count_stmt = select(func.count()).select_from(self.model)
-        count =  await self.session.scalar(count_stmt)
+        count = await self.session.scalar(count_stmt)
 
         return games, count

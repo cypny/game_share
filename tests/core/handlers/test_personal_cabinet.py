@@ -61,13 +61,6 @@ class TestPersonalCabinetHandlers:
 
         mock_callback_query.answer.assert_called_once_with("📦 Функционал 'Управление подпиской' в разработке")
 
-    @pytest.mark.asyncio
-    async def test_my_queue(self, mock_callback_query):
-        from game_share_bot.core.handlers.menu.personal_cabinet import my_queue
-
-        await my_queue(mock_callback_query)
-
-        mock_callback_query.answer.assert_called_once_with("📋 Функционал 'Моя очередь' в разработке")
 
     @pytest.mark.asyncio
     async def test_personal_cabinet_state_cleared(self, test_session, mock_callback_query, mock_state):

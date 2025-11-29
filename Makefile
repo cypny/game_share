@@ -1,31 +1,39 @@
 DOCKER_COMPOSE := docker compose
 DOCKER_COMPOSE_RUN := $(DOCKER_COMPOSE) run --rm
 DOCKER_RUN_BOT := $(DOCKER_COMPOSE_RUN) bot
+PSQL := $(DOCKER_COMPOSE) exec -e PGPASSWORD=postgres db psql -U postgres -d gameshare
 
-
-# Вот сюда тыкайте и все заработает (надеюсь)
-# если не заработает - попробуйте перед этим сделать make reset
-run:
-	$(MAKE) up
-	$(MAKE) migrate
-	$(MAKE) start_bot
+# Запуск контейнеров
+up:
+	$(DOCKER_COMPOSE) up
 
 # Пересобирает контейнеры, очищает бд, удаляет текущие миграции, создает новую и применяет ее
 reset:
+	${DOCKER_COMPOSE} down -v
 	$(MAKE) build
-	$(MAKE) up
+	$(MAKE) up-d
+	$(MAKE) wait_db
 	$(MAKE) drop_db
+	$(MAKE) init_db
 	rm -f alembic/versions/*.py
 	$(MAKE) migration
 	$(MAKE) migrate
 	$(MAKE) down
+
+# Проверяет, запущена ли бд; ждет запуска
+wait_db:
+	@echo "Waiting for DB to become healthy..."
+	@until [ "$$(docker inspect --format='{{.State.Health.Status}}' $$(docker compose ps -q db))" = "healthy" ]; do \
+		sleep 2; \
+	done
+	@echo "DB is healthy!"
 
 # Сборка контейнеров
 build:
 	${DOCKER_COMPOSE} build
 
 # Запуск контейнеров в фоне
-up:
+up-d:
 	$(DOCKER_COMPOSE) up -d
 
 # Остановка контейнеров
@@ -42,11 +50,17 @@ migrate:
 
 # Удаление всех таблиц в бд (контейнеры должны быть запущены)
 drop_db:
-	$(DOCKER_COMPOSE) exec -e PGPASSWORD=postgres db \
-		psql -U postgres \
-		-d gameshare \
-		-f /app/sql/drop.sql
+	$(PSQL) -f /app/sql/drop.sql
 
-# Запуск бота (контейнеры должны быть запущены)
+init_db:
+	$(PSQL) -f /app/sql/init.sql
+
+# Запуск бота (перед запуском применяется миграция)
 start_bot:
-	$(DOCKER_RUN_BOT) python -m game_share_bot
+	alembic upgrade head
+	python -m game_share_bot
+
+# Запуск тестов
+test:
+	poetry run pytest
+

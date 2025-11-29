@@ -1,4 +1,4 @@
-from datetime import timedelta, timezone
+from datetime import timedelta
 
 from game_share_bot.infrastructure.models import Rental
 from game_share_bot.infrastructure.repositories.rental.queue_entry import QueueFullInfo
@@ -13,7 +13,7 @@ def format_my_queue(queues_info: list[QueueFullInfo], rentals_to_take: list[Rent
         for rental in rentals_to_take:
             rental_line = (
                 f"🎮 <b>{rental.disc.game.title}</b>\n"
-                #TODO: вынести это
+                # TODO: вынести это
                 f"⏰ Взять до: {(rental.created_at + timedelta(weeks=1)).strftime('%d.%m.%Y %H:%M')}\n"
             )
             text_lines.append(rental_line)
