@@ -1,4 +1,5 @@
 from game_share_bot.scheduler.jobs.check_pending_subscriptions import check_pending_subscriptions
+from game_share_bot.scheduler.jobs.notify_subscription_end import notify_subscription_end
 from game_share_bot.scheduler.jobs.queue import update_queue_to_rental
 from game_share_bot.scheduler.jobs.rental.notify_overdue_rentals import notify_overdue_rentals
 from game_share_bot.scheduler.jobs.rental.notify_rental_end import notify_rental_end
@@ -21,9 +22,10 @@ JOBS = [
     },
     {
         "func": notify_rental_end,
-        "trigger": "cron",
-        "hour": 9,
-        "minute": 0,
+        "trigger": "interval",
+        "seconds": 5,
+        # "hour": 9,
+        # "minute": 0,
         "id": "notify_rental_end"
     },
     {
@@ -39,5 +41,12 @@ JOBS = [
         "hour": 10,
         "minute": 0,
         "id": "notify_overdue_rentals"
+    },
+    {
+        "func": notify_subscription_end,
+        "trigger": "interval",
+        # "minutes": 10,
+        "seconds": 5,
+        "id": "notify_subscription_end"
     }
 ]
