@@ -57,9 +57,7 @@ def admin_kb() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(text="📋 Запросы на возврат",
-                                     callback_data=AdminCallback(action=AdminAction.VIEW_RETURN_REQUESTS).pack()),
-                InlineKeyboardButton(text="📋 Запросы на получение",
-                                     callback_data=AdminCallback(action=AdminAction.VIEW_TAKE_REQUESTS).pack())
+                                     callback_data=AdminCallback(action=AdminAction.VIEW_RETURN_REQUESTS).pack())
             ]
         ]
     )
