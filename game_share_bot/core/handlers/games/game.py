@@ -139,6 +139,7 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
     except Exception as e:
         logger.error(f"Ошибка при взятии игры {game_id} пользователем {tg_id}: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при взятии игры")
+        raise
 
 @dataclass
 class GameStatusInfo:
