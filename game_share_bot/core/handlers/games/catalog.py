@@ -70,7 +70,6 @@ async def _process_search_game(
             skip=skip,
             take=take
         )
-        safe_query = query
 
     total_pages = (total_games + page_size - 1) // page_size
     games_str = format_games_list(games)

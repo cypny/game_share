@@ -30,10 +30,13 @@ class GameRepository(BaseRepository[Game]):
         """Возвращает найденные игры и их общее количество"""
         # TODO: чистый левенштейн плохо работает - надо модифицировать
         # в данный момент по запросу red dead выдает God of War
+
         stmt = (
             select(Game)
-            # .where(func.levenshtein(Game.title, query) <= 3)
-            .order_by(func.levenshtein(Game.title, query))
+            .order_by(
+                func.word_similarity(Game.title, query).desc(),
+                Game.title.asc(),
+            )
             .offset(skip)
             .limit(take)
         )
