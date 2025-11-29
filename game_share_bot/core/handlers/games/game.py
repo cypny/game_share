@@ -110,10 +110,10 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
 
         new_entry = await queue_repo.create_queue_entry(user.id, game_id)
 
-        # await session.flush()
-        # await update_queue_to_rental_internal(session)
-        # await session.flush()
-        # await session.refresh(user)
+        await session.flush()
+        await update_queue_to_rental_internal(session)
+        await session.flush()
+        await session.refresh(user)
 
         logger.info(f"{new_entry}")
 
