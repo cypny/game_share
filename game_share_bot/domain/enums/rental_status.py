@@ -8,3 +8,4 @@ class RentalStatus(IntEnum):
     OVERDUE = 3
     PENDING_RETURN = 4
     PENDING_TAKE = 5
+    CANCELED = 6
