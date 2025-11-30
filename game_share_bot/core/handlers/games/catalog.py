@@ -1,4 +1,6 @@
 from aiogram import Router, types
+from aiogram.filters import StateFilter
+from aiogram.fsm.state import State, default_state
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -70,7 +72,6 @@ async def _process_search_game(
             skip=skip,
             take=take
         )
-        safe_query = query
 
     total_pages = (total_games + page_size - 1) // page_size
     games_str = format_games_list(games)

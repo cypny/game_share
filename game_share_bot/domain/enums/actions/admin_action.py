@@ -9,4 +9,6 @@ class AdminAction(StrEnum):
     RETURN_TO_MAIN_PANEL = "return_to_main_panel"
     SKIP_IMAGE_INPUT = "skip_image_input"
     VIEW_RETURN_REQUESTS = "view_return_requests"
-    VIEW_TAKE_REQUESTS = "view_take_requests"
+    CREATE_NOTIFICATION = "create_notification"
+    SEND_NOTIFICATION_TO_ALL = "send_notification_to_all"
+    SEND_NOTIFICATION_TO_ACTIVE = "send_notification_to_active"
