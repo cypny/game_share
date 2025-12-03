@@ -18,6 +18,7 @@ from game_share_bot.core.keyboards.inline.admin import add_game_image_kb, return
 from game_share_bot.core.services.admin import try_parse_categories
 from game_share_bot.core.states import AddGameState
 from game_share_bot.domain.enums import AdminAction
+from game_share_bot.infrastructure.repositories.game_category import GameCategoryRepository
 from game_share_bot.infrastructure.utils import get_logger
 
 router = Router()
@@ -55,7 +56,9 @@ async def handle_categories_and_request_discs_count(message: Message, session: A
             reply_markup=return_to_admin_manage_library_panel_kb(),
         )
     else:
-        await state.update_data({"categories": categories})
+        # Сохраняем только ID категорий для JSON сериализации
+        category_ids = [cat.id for cat in categories]
+        await state.update_data({"category_ids": category_ids})
         await message.answer(
             "Введите кол-во физических копий игры:\n\n"
             "(вы также сможете изменить этот параметр отдельно после добавления)",
@@ -86,9 +89,19 @@ async def handle_description_and_request_image(message: Message, state: FSMConte
 
 
 @router.message(AddGameState.waiting_for_image, IsAdmin())
-async def handle_image_and_request_confirmation(message: Message, state: FSMContext):
+async def handle_image_and_request_confirmation(message: Message, session: AsyncSession, state: FSMContext):
     await state.update_data({"image": message.text})
     data = await state.get_data()
+
+    # Загружаем категории по ID для отображения
+    category_repo = GameCategoryRepository(session)
+    categories = []
+    for category_id in data["category_ids"]:
+        category = await category_repo.get_by_id(category_id)
+        if category:
+            categories.append(category)
+    data["categories"] = categories
+
     try:
         await message.answer_photo(
             photo=data["image"],
@@ -109,8 +122,18 @@ async def handle_image_and_request_confirmation(message: Message, state: FSMCont
 @router.callback_query(
     AddGameState.waiting_for_image, AdminCallback.filter_by_action(AdminAction.SKIP_IMAGE_INPUT), IsAdmin()
 )
-async def skip_image_and_request_confirmation(callback: CallbackQuery, state: FSMContext):
+async def skip_image_and_request_confirmation(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     data = await state.get_data()
+
+    # Загружаем категории по ID для отображения
+    category_repo = GameCategoryRepository(session)
+    categories = []
+    for category_id in data["category_ids"]:
+        category = await category_repo.get_by_id(category_id)
+        if category:
+            categories.append(category)
+    data["categories"] = categories
+
     await callback.answer()
     await callback.message.edit_text(
         get_game_adding_confirmation_text(data),

@@ -29,7 +29,6 @@ routers = [
     admin_add_disc_router,
     admin_delete_disc_router,
     admin_return_requests_router,
-    admin_rental_router,
     admin_stats_router,
     admin_notify_actions_router,
 
