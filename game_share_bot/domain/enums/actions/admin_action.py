@@ -16,3 +16,6 @@ class AdminAction(StrEnum):
     ADD_DISK = "add_disk"
     DELETE_DISK = "delete_disk"
     VIEW_STATS = "view_stats"
+    CREATE_NOTIFICATION = "create_notification"
+    SEND_NOTIFICATION_TO_ALL = "send_notification_to_all"
+    SEND_NOTIFICATION_TO_ACTIVE = "send_notification_to_active"

@@ -23,7 +23,8 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 POSTGRES_DB = os.getenv("POSTGRES_DB")
-CONN_STRING_ASYNC = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@db:5432/{POSTGRES_DB}"
+POSTGRES_HOST  = os.getenv("POSTGRES_HOST", "db")
+CONN_STRING_ASYNC = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
 
 
 async def set_default_commands(bot: Bot):

@@ -6,7 +6,7 @@ from .admin.manage_library.add_disc import router as admin_add_disc_router
 from .admin.manage_library.delete_disc import router as admin_delete_disc_router
 from .admin.manage_library.manage_library import router as admin_manage_library_panel_router
 from .admin.return_requests import router as admin_return_requests_router
-from .admin.take_requests import router as admin_rental_router
+from .admin.notify_actions import router as admin_notify_actions_router
 from .debug import router as debug_router
 from .games.catalog import router as catalog_router
 from .games.game import router as game_router
@@ -31,13 +31,13 @@ routers = [
     admin_return_requests_router,
     admin_rental_router,
     admin_stats_router,
+    admin_notify_actions_router,
 
     # Стартовые и основные
     start_router,
     main_menu_router,
 
     # Каталог игр
-    catalog_router,
     game_router,
 
     # Личный кабинет
@@ -51,6 +51,9 @@ routers = [
 
     # Отладка
     debug_router,
+
+    # В конец чтобы работало
+    catalog_router,
 ]
 
 

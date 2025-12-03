@@ -28,9 +28,16 @@ class GameRepository(BaseRepository[Game]):
         return await super().get_by_id(game_id, options=[joinedload(Game.categories), joinedload(Game.queues)])
 
     async def search_games(self, query: str, skip=0, take=5) -> tuple[list[Game], int]:
+        """Возвращает найденные игры и их общее количество"""
+        # TODO: чистый левенштейн плохо работает - надо модифицировать
+        # в данный момент по запросу red dead выдает God of War
+
         stmt = (
             select(Game)
-            .order_by(func.levenshtein(Game.title, query))
+            .order_by(
+                func.word_similarity(Game.title, query).desc(),
+                Game.title.asc(),
+            )
             .offset(skip)
             .limit(take)
         )

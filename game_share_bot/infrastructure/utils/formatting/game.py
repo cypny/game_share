@@ -10,35 +10,24 @@ def format_game_short(game: Game) -> str:
     return text
 
 
-def format_game_full(
-        game: Game,
-        available_discs_count: int,
-        user_queue_position: int | None,
-        availability_text
-) -> str:
-    if user_queue_position is not None:
-        queue_status_text = f"Ваша позиция в очереди: {user_queue_position}"
-    else:
-        queue_status_text = availability_text
+def format_game_full(game: Game, status_info: "GameStatusInfo") -> str:
+    categories_text = "🏷️ " + ", ".join(
+        [category.name for category in game.categories]) if game.categories else "🏷️ Категории не указаны"
 
-    if available_discs_count > 0:
-        availability_text = f"✅ Доступно дисков: {available_discs_count}"
-    else:
-        availability_text = "❌ Все диски заняты"
-
-    if game.categories:
-        categories_text = "🏷️ " + ", ".join([category.name for category in game.categories])
-    else:
-        categories_text = "🏷️ Категории не указаны"
-
-    return (
-        f"🎮 <b>{game.title}</b>\n\n"
-        f"{game.description}\n\n"
-        f"{categories_text}\n\n"
-        f"{availability_text}\n\n"
-        f"{queue_status_text}\n\n"
+    message_lines = [
+        f"🎮 <b>{game.title}</b>",
+        f"",
+        f"{game.description}",
+        f"",
+        f"{categories_text}",
+        f"",
+        f"{status_info.availability_status}",
+        f"{status_info.queue_status}",
+        f"",
         f"/game_{game.id}"
-    )
+    ]
+
+    return "\n".join(message_lines)
 
 
 def format_game_text_full(title: str, description: str, discs_count: int, categories: list[GameCategory]) -> str:

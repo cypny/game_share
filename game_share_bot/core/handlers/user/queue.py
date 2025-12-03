@@ -54,7 +54,11 @@ async def take_disk(callback: CallbackQuery, callback_data: RentalCallback, sess
         if not rental:
             return False
 
-        await callback.answer(f"⏳ Запрос на возврат диска '{rental.disc.game.title}' отправлен администратору!")
+        success = await rental_repo.confirm_take(rental_id)
+        if not success:
+            await callback.answer("❌ Ошибка при взятии")
+            return None
+        await callback.answer(f"Вы взяли диск!")
         await my_queue(callback, session)
         logger.info(f"Пользователь {user_id} запросил возврат диска {rental_id}")
 
