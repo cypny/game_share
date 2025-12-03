@@ -10,11 +10,12 @@ from game_share_bot.infrastructure.models import Rental
 def return_to_admin_main_panel_kb() -> InlineKeyboardMarkup:
     return return_kb(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL))
 
+
 def return_to_admin_manage_library_panel_kb() -> InlineKeyboardMarkup:
     return return_kb(AdminCallback(action=AdminAction.MANAGE_LIBRARY))
 
+
 def rental_actions_confirmation_kb(rentals: list[Rental], action_type: str) -> InlineKeyboardMarkup:
-    """Создает клавиатуру с кнопками подтверждения/отклонения возвратов"""
     keyboard_buttons = []
 
     for rental in rentals:
@@ -55,6 +56,7 @@ def admin_main_panel_kb() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [admin_button("Управление библиотекой", AdminAction.MANAGE_LIBRARY)],
             [admin_button("Выдать админку", AdminAction.APPOINT)],
+            [admin_button("Статистика", AdminAction.VIEW_STATS)],
             [
                 admin_button("Запросы на возврат", AdminAction.VIEW_RETURN_REQUESTS),
                 admin_button("Запросы на получение", AdminAction.VIEW_TAKE_REQUESTS),
@@ -79,6 +81,7 @@ def admin_manage_library_kb() -> InlineKeyboardMarkup:
             ]
         ]
     )
+
 
 def add_game_image_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(

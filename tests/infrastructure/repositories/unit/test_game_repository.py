@@ -27,14 +27,14 @@ class TestGameRepository:
         game1 = await repo.try_create(
             title="Duplicate Game",
             description="Description 1",
-            image="image1.jpg"
+            categories=[]
         )
         assert game1 is not None
 
         game2 = await repo.try_create(
             title="Duplicate Game",
             description="Description 2",
-            image="image2.jpg"
+            categories=[]
         )
         assert game2 is None
 
