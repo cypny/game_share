@@ -9,9 +9,9 @@ class TestSubscriptionRepository:
     async def test_get_by_user_success(self, test_session, mock_user, mock_subscription):
         repo = SubscriptionRepository(test_session)
 
-        with patch('game_share_bot.infrastructure.repositories.subscription.subscription.BaseRepository.get_by_field',
+        with patch('game_share_bot.infrastructure.repositories.subscription.subscription.BaseRepository.get_all_by_field',
                    new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = mock_subscription
+            mock_get.return_value = [mock_subscription]
 
             result = await repo.get_all_by_user(mock_user)
 
@@ -20,17 +20,19 @@ class TestSubscriptionRepository:
             assert call_args[0][0] == "user_id"
             assert call_args[0][1] == mock_user.id
             assert len(call_args[1]['options']) == 1
-            assert result == mock_subscription
-            assert result.user.id == mock_user.id
-            assert result.plan.name == "premium"
+            assert isinstance(result, list)
+            assert len(result) == 1
+            assert result[0] == mock_subscription
+            assert result[0].user.id == mock_user.id
+            assert result[0].plan.name == "premium"
 
     @pytest.mark.asyncio
     async def test_get_by_user_not_found(self, test_session, mock_user):
         repo = SubscriptionRepository(test_session)
 
-        with patch('game_share_bot.infrastructure.repositories.subscription.subscription.BaseRepository.get_by_field',
+        with patch('game_share_bot.infrastructure.repositories.subscription.subscription.BaseRepository.get_all_by_field',
                    new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = None
+            mock_get.return_value = []
 
             result = await repo.get_all_by_user(mock_user)
 
@@ -38,23 +40,26 @@ class TestSubscriptionRepository:
             call_args = mock_get.call_args
             assert call_args[0][0] == "user_id"
             assert call_args[0][1] == mock_user.id
-            assert result is None
+            assert isinstance(result, list)
+            assert len(result) == 0
 
     @pytest.mark.asyncio
     async def test_get_by_user_with_relations(self, test_session, mock_user, mock_subscription):
         repo = SubscriptionRepository(test_session)
 
-        with patch('game_share_bot.infrastructure.repositories.subscription.subscription.BaseRepository.get_by_field',
+        with patch('game_share_bot.infrastructure.repositories.subscription.subscription.BaseRepository.get_all_by_field',
                    new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = mock_subscription
+            mock_get.return_value = [mock_subscription]
 
             result = await repo.get_all_by_user(mock_user)
 
             assert result is not None
-            assert result.user is not None
-            assert result.plan is not None
-            assert result.plan.max_simultaneous_rental == 5
-            assert result.plan.monthly_price == 999.99
+            assert isinstance(result, list)
+            assert len(result) == 1
+            assert result[0].user is not None
+            assert result[0].plan is not None
+            assert result[0].plan.max_simultaneous_rental == 5
+            assert result[0].plan.monthly_price == 999.99
 
     @pytest.mark.asyncio
     async def test_create_subscription(self, test_session, mock_user, mock_subscription_plan):

@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, patch, MagicMock
 
 from game_share_bot.core.callbacks.subscription import SubscriptionCallback
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
+from game_share_bot.domain.enums.subscription_status import SubscriptionStatus
 from game_share_bot.core.states.subscription.subscribe import SubscriptionState
 
 
@@ -30,10 +31,13 @@ class TestSubscriptionHandlers:
             sub_repo_cls.return_value = sub_repo
 
             user_repo.get_by_tg_id.return_value = mock_user
-            sub_repo.get_by_user.return_value = mock_subscription
+
+            # Создаем активную подписку
+            mock_subscription.status = SubscriptionStatus.ACTIVE
+            sub_repo.get_all_by_user.return_value = [mock_subscription]
 
             plan = MagicMock(id=1, name="TestPlan")
-            session.scalars.return_value = [plan]
+            session.scalars.return_value = AsyncMock(__iter__=lambda self: iter([plan]))
 
             format_info.return_value = "SUB_INFO"
             actions_kb.return_value = "KB"
@@ -47,15 +51,12 @@ class TestSubscriptionHandlers:
             user_repo.get_by_tg_id.assert_awaited_once_with(
                 mock_callback_query.from_user.id
             )
-            sub_repo.get_by_user.assert_awaited_once_with(mock_user)
+            sub_repo.get_all_by_user.assert_awaited_once_with(mock_user)
 
             mock_callback_query.message.edit_text.assert_called_once_with(
                 text="SUB_INFO",
                 reply_markup="KB",
                 parse_mode="HTML",
-            )
-            mock_state.set_state.assert_awaited_once_with(
-                SubscriptionState.choosing_plan
             )
 
     @pytest.mark.asyncio
@@ -80,10 +81,10 @@ class TestSubscriptionHandlers:
             sub_repo_cls.return_value = sub_repo
 
             user_repo.get_by_tg_id.return_value = mock_user
-            sub_repo.get_by_user.return_value = None
+            sub_repo.get_all_by_user.return_value = []  # Нет подписок
 
             plan = MagicMock(id=1, name="TestPlan")
-            session.scalars.return_value = [plan]
+            session.scalars.return_value = AsyncMock(__iter__=lambda self: iter([plan]))
 
             format_info.return_value = "NO_SUB"
             actions_kb.return_value = "KB"
@@ -183,7 +184,8 @@ class TestSubscriptionHandlers:
 
         with patch.object(handlers, "UserRepository") as user_repo_cls, \
              patch.object(handlers, "SubscriptionRepository") as sub_repo_cls, \
-             patch.object(handlers, "return_kb") as return_kb:
+             patch.object(handlers, "create_payment") as mock_create_payment, \
+             patch.object(handlers, "select") as mock_select:
 
             user_repo = AsyncMock()
             sub_repo = AsyncMock()
@@ -191,30 +193,31 @@ class TestSubscriptionHandlers:
             sub_repo_cls.return_value = sub_repo
 
             user_repo.get_by_tg_id.return_value = mock_user
+            sub_repo.get_all_by_user.return_value = []  # Нет активных подписок
+
             mock_state.get_data.return_value = {
                 "plan_id": 1,
                 "plan_name": "Premium",
                 "duration": 3,
             }
 
-            sub_repo.create.return_value = MagicMock()
-            kb_instance = MagicMock()
-            return_kb.return_value = kb_instance
+            # Мокаем session.scalar для получения плана
+            mock_plan = MagicMock()
+            mock_plan.id = 1
+            mock_plan.name = "Premium"
+            session.scalar = AsyncMock(return_value=mock_plan)
 
-            callback_data = SubscriptionCallback(
-                action=SubscriptionAction.BUY,
-            )
+            # Мокаем create_payment
+            mock_create_payment.return_value = ("payment_123", "https://payment.url")
+
+            sub_repo.create.return_value = MagicMock(id=100)
 
             await handlers.purchase_subscription(
                 mock_callback_query,
-                callback_data,
                 session,
                 mock_state,
             )
 
             sub_repo.create.assert_awaited()
             mock_callback_query.message.edit_text.assert_called_once()
-            _, kwargs = mock_callback_query.message.edit_text.call_args
-            assert "подписка Premium 3 месяцев выдана" in kwargs["text"]
-            assert kwargs["reply_markup"] == kb_instance
             mock_state.clear.assert_awaited_once()

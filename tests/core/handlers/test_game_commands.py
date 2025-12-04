@@ -26,7 +26,10 @@ class TestGameCommands:
                 cover_image_url="https://example.com/cover.jpg",
                 queues=[],
             )
-            user = MagicMock(id=10, rentals=[], queues=[])
+            # Создаем мок подписки с планом
+            mock_subscription = MagicMock()
+            mock_subscription.plan.max_simultaneous_rental = 3
+            user = MagicMock(id=10, rentals=[], queues=[], subscription=mock_subscription)
             mock_game_repo.get_by_id.return_value = game
             mock_user_repo.get_by_tg_id.return_value = user
             mock_disc_repo.get_available_discs_count_by_game.return_value = 2
@@ -74,7 +77,10 @@ class TestGameCommands:
                 cover_image_url=None,
                 queues=[],
             )
-            user = MagicMock(id=10, rentals=[], queues=[])
+            # Создаем мок подписки с планом
+            mock_subscription = MagicMock()
+            mock_subscription.plan.max_simultaneous_rental = 3
+            user = MagicMock(id=10, rentals=[], queues=[], subscription=mock_subscription)
             mock_game_repo.get_by_id.return_value = game
             mock_user_repo.get_by_tg_id.return_value = user
             mock_disc_repo.get_available_discs_count_by_game.return_value = 1

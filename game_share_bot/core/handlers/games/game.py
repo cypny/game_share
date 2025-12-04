@@ -1,17 +1,19 @@
 from dataclasses import dataclass
 
 from aiogram import Router, F, types
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import GameCallback
+from game_share_bot.core.keyboards import enter_queue_kb, take_disc_confirmation_kb
+from game_share_bot.core.states import TakeDiscState
 from game_share_bot.domain.enums import RentalStatus
 from game_share_bot.domain.enums.actions.game_actions import GameAction
 from game_share_bot.domain.rental.queue import get_entry_position
 from game_share_bot.infrastructure.models import User, Game
 from game_share_bot.infrastructure.repositories.rental.queue_entry import QueueEntryRepository
 from game_share_bot.infrastructure.utils.formatting import format_game_full
-from game_share_bot.core.keyboards import enter_queue_kb
 from game_share_bot.infrastructure.repositories import GameRepository, DiscRepository, RentalRepository, UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 from game_share_bot.scheduler.jobs.queue import update_queue_to_rental_internal
@@ -65,7 +67,7 @@ async def cmd_game(message: Message, session: AsyncSession):
         await message.answer("❌ Ошибка при загрузке информации об игре")
 
 @router.callback_query(GameCallback.filter_by_action(GameAction.REQUEST_QUEUE))
-async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback, session: AsyncSession):
+async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback, session: AsyncSession, state: FSMContext):
     """Обработчик кнопки 'Взять игру' на странице игры"""
     tg_id = callback.from_user.id
     game_id = callback_data.game_id
@@ -77,6 +79,7 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
         disc_repo = DiscRepository(session)
         user_repo = UserRepository(session)
         queue_repo = QueueEntryRepository(session)
+        rental_repo = RentalRepository(session)
 
         user = await user_repo.get_by_tg_id(tg_id)
         if not user:
@@ -117,7 +120,31 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
 
         logger.info(f"{new_entry}")
 
-        await callback.answer(f"✅ Вы успешно взяли игру '{game.title}'!")
+        # Проверяем, был ли создан rental со статусом PENDING_TAKE
+        pending_rental = next(
+            (rental for rental in user.rentals
+             if rental.disc.game_id == game_id and rental.status_id == RentalStatus.PENDING_TAKE),
+            None
+        )
+
+        # Если создан rental (пользователь первый в очереди) - показываем окно подтверждения
+        if pending_rental:
+            logger.info(f"Пользователь {tg_id} стал первым в очереди, показываем окно подтверждения для rental {pending_rental.id}")
+
+            await state.update_data(rental_id=pending_rental.id)
+            await state.set_state(TakeDiscState.waiting_for_confirmation)
+
+            await callback.answer("✅ Диск готов к получению!")
+            await callback.message.answer(
+                f"🎮 <b>{game.title}</b>\n\n"
+                f"❓ Вы точно взяли диск?\n\n"
+                f"⚠️ Пожалуйста, подтвердите только после того, как физически забрали диск.",
+                parse_mode="HTML",
+                reply_markup=take_disc_confirmation_kb(pending_rental.id)
+            )
+        else:
+            # Пользователь встал в очередь, но не первый
+            await callback.answer(f"✅ Вы успешно встали в очередь за игрой '{game.title}'!")
 
         game_status_info = await _get_game_status_info(user, game, session)
         updated_reply = format_game_full(game, game_status_info)
@@ -150,7 +177,7 @@ class GameStatusInfo:
     queue_status: str
     can_enter_queue: bool
 
-async def _can_enter_queue(user: User) -> str:
+async def _can_enter_queue(user: User) -> str | None:
     if not user.subscription:
         return "У вас нет подписки"
     sub_plan = user.subscription.plan
@@ -170,16 +197,19 @@ async def _get_game_status_info(user: User, game: Game, session: AsyncSession) -
         if r.disc.game_id == game.id and r.status_id != RentalStatus.COMPLETED
     )
 
+    # Проверяем возможность взять игру (подписка, лимиты)
+    cannot_take_reason = await _can_enter_queue(user)
+
     # Определяем статусы
     availability_status = _get_availability_status(available_discs_count)
-    queue_status = _get_queue_status(queue_position, has_active_rental, available_discs_count)
+    queue_status = _get_queue_status(queue_position, has_active_rental, available_discs_count, cannot_take_reason)
 
     # Определяем можно ли встать в очередь
     can_enter_queue = (
             available_discs_count > 0 and
             queue_position is None and
             not has_active_rental and
-            await _can_enter_queue(user) is None  # Проверка подписки и лимитов
+            cannot_take_reason is None  # Проверка подписки и лимитов
     )
 
     return GameStatusInfo(
@@ -196,11 +226,13 @@ def _get_availability_status(available_discs_count: int) -> str:
         return f"✅ Доступно дисков: {available_discs_count}"
     return "❌ Все диски заняты"
 
-def _get_queue_status(queue_position: int | None, has_active_rental: bool, available_discs_count: int) -> str:
+def _get_queue_status(queue_position: int | None, has_active_rental: bool, available_discs_count: int, cannot_take_reason: str | None) -> str:
     if has_active_rental:
         return "📦 У вас уже арендована эта игра"
     if queue_position is not None:
         return f"🎯 Ваша позиция в очереди: {queue_position}"
+    if cannot_take_reason:
+        return f"❌ {cannot_take_reason}"
     if available_discs_count > 0:
         return "⏳ Вы можете встать в очередь"
     return ""

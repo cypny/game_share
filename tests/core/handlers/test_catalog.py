@@ -86,7 +86,6 @@ class TestCatalogHandlers:
 
             mock_message.edit_text.assert_called_once()
             args, kwargs = mock_message.edit_text.call_args
-            assert "Каталог игр (" in args[0]
-            assert "Нет игр" in args[0]
+            assert "Игр не найдено" in args[0]
             assert kwargs["parse_mode"] == "HTML"
             assert kwargs["reply_markup"] == "keyboard"

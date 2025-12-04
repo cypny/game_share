@@ -50,8 +50,16 @@ def get_game_adding_confirmation_text(data: dict[str, Any]) -> str:
 
 
 async def add_game(session: AsyncSession, data: dict[str, Any]) -> Game | None:
+    # Загружаем категории по ID
+    category_repo = GameCategoryRepository(session)
+    categories = []
+    for category_id in data["category_ids"]:
+        category = await category_repo.get_by_id(category_id)
+        if category:
+            categories.append(category)
+
     game = await GameRepository(session).try_create(
-        data["title"], data["description"], data["categories"], data["image"]
+        data["title"], data["description"], categories, data.get("image")
     )
     if game is None:
         return None
