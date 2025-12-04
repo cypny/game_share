@@ -87,6 +87,8 @@ def mock_callback_query():
     callback.message = AsyncMock(spec=Message)
     callback.message.edit_text = AsyncMock()
     callback.message.edit_caption = AsyncMock()
+    callback.message.answer = AsyncMock()
+    callback.message.photo = None
     callback.answer = AsyncMock()
     return callback
 
