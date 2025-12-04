@@ -197,16 +197,19 @@ async def _get_game_status_info(user: User, game: Game, session: AsyncSession) -
         if r.disc.game_id == game.id and r.status_id != RentalStatus.COMPLETED
     )
 
+    # Проверяем возможность взять игру (подписка, лимиты)
+    cannot_take_reason = await _can_enter_queue(user)
+
     # Определяем статусы
     availability_status = _get_availability_status(available_discs_count)
-    queue_status = _get_queue_status(queue_position, has_active_rental, available_discs_count)
+    queue_status = _get_queue_status(queue_position, has_active_rental, available_discs_count, cannot_take_reason)
 
     # Определяем можно ли встать в очередь
     can_enter_queue = (
             available_discs_count > 0 and
             queue_position is None and
             not has_active_rental and
-            await _can_enter_queue(user) is None  # Проверка подписки и лимитов
+            cannot_take_reason is None  # Проверка подписки и лимитов
     )
 
     return GameStatusInfo(
@@ -223,11 +226,13 @@ def _get_availability_status(available_discs_count: int) -> str:
         return f"✅ Доступно дисков: {available_discs_count}"
     return "❌ Все диски заняты"
 
-def _get_queue_status(queue_position: int | None, has_active_rental: bool, available_discs_count: int) -> str:
+def _get_queue_status(queue_position: int | None, has_active_rental: bool, available_discs_count: int, cannot_take_reason: str | None) -> str:
     if has_active_rental:
         return "📦 У вас уже арендована эта игра"
     if queue_position is not None:
         return f"🎯 Ваша позиция в очереди: {queue_position}"
+    if cannot_take_reason:
+        return f"❌ {cannot_take_reason}"
     if available_discs_count > 0:
         return "⏳ Вы можете встать в очередь"
     return ""
