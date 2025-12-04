@@ -18,8 +18,11 @@ def return_to_admin_manage_library_panel_kb() -> InlineKeyboardMarkup:
 def rental_actions_confirmation_kb(rentals: list[Rental], action_type: str) -> InlineKeyboardMarkup:
     keyboard_buttons = []
 
+    # Определяем текст действия в зависимости от типа
+    action_text = "возврат" if action_type == "return" else "получение"
+
     for rental in rentals:
-        button_text = f"✅ Подтвердить возврат {rental.disc.game.title}"
+        button_text = f"✅ Подтвердить {action_text} {rental.disc.game.title}"
         keyboard_buttons.append(
             [
                 InlineKeyboardButton(
@@ -29,7 +32,7 @@ def rental_actions_confirmation_kb(rentals: list[Rental], action_type: str) -> I
             ]
         )
 
-        button_text = f"❌ Отклонить возврат {rental.disc.game.title}"
+        button_text = f"❌ Отклонить {action_text} {rental.disc.game.title}"
         keyboard_buttons.append(
             [
                 InlineKeyboardButton(
@@ -56,11 +59,11 @@ def admin_main_panel_kb() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [admin_button("Управление библиотекой", AdminAction.MANAGE_LIBRARY)],
             [admin_button("Выдать админку", AdminAction.APPOINT)],
-            [admin_button("Статистика", AdminAction.VIEW_STATS)],
             [
                 admin_button("Запросы на возврат", AdminAction.VIEW_RETURN_REQUESTS),
                 admin_button("Запросы на получение", AdminAction.VIEW_TAKE_REQUESTS),
             ],
+            [admin_button("Создать рассылку", AdminAction.CREATE_NOTIFICATION)],
         ]
     )
 
@@ -77,13 +80,10 @@ def admin_manage_library_kb() -> InlineKeyboardMarkup:
                 admin_button("Удалить диск", AdminAction.DELETE_DISK),
             ],
             [
-                return_button(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL)),
-                InlineKeyboardButton(text="📋 Запросы на возврат",
-                                     callback_data=AdminCallback(action=AdminAction.VIEW_RETURN_REQUESTS).pack())
+                admin_button("Статистика", AdminAction.VIEW_STATS)
             ],
             [
-                InlineKeyboardButton(text="Создать рассылку",
-                                     callback_data=AdminCallback(action=AdminAction.CREATE_NOTIFICATION).pack())
+                return_button(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL))
             ]
         ]
     )

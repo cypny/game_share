@@ -101,3 +101,95 @@ async def reject_return_request(callback: CallbackQuery, callback_data: RentalCa
     except Exception as e:
         logger.error(f"Ошибка при отклонении возврата: {str(e)}", exc_info=True)
         await callback.answer("❌ Ошибка при отклонении возврата")
+
+
+# === Обработчики для запросов на получение ===
+
+def _format_pending_takes_message(rentals: list[Rental]) -> str:
+    """Форматирует сообщение со списком запросов на получение"""
+    if not rentals:
+        return "📋 Запросы на получение отсутствуют"
+
+    takes_list = []
+    for rental in rentals:
+        user_info = f"👤 @{rental.user.name} (ID: {rental.user.tg_id})"
+        game_info = f"🎮 {rental.disc.game.title} - Диск {rental.disc.disc_id}"
+        created_info = f"📅 Создан: {rental.start_date.strftime('%d.%m.%Y %H:%M')}"
+
+        full_info = f"{user_info}\n{game_info}\n{created_info}"
+        takes_list.append(full_info)
+
+    takes_str = "\n\n".join(takes_list)
+    return f"📋 Запросы на получение ({len(rentals)}):\n\n{takes_str}"
+
+
+@router.callback_query(AdminCallback.filter_by_action(AdminAction.VIEW_TAKE_REQUESTS))
+async def show_take_requests(callback: CallbackQuery, session: AsyncSession):
+    """Показывает все запросы на получение для администратора"""
+    user_id = callback.from_user.id
+    logger.info(f"Администратор {user_id} запросил список запросов на получение")
+
+    try:
+        rental_repo = RentalRepository(session)
+        pending_takes = await rental_repo.get_rentals_by_status(RentalStatus.PENDING_TAKE)
+
+        text = _format_pending_takes_message(pending_takes)
+        markup = rental_actions_confirmation_kb(pending_takes,
+                                                "take") if pending_takes else return_to_admin_main_panel_kb()
+
+        await callback.message.edit_text(text, reply_markup=markup)
+        logger.info(f"Список запросов на получение отправлен администратору {user_id}")
+
+    except Exception as e:
+        logger.error(f"Ошибка при получении запросов на получение: {str(e)}", exc_info=True)
+        await callback.answer("❌ Ошибка при загрузке запросов на получение")
+
+
+@router.callback_query(RentalCallback.filter(F.action == "confirm_take"))
+async def confirm_take_request(callback: CallbackQuery, callback_data: RentalCallback, session: AsyncSession):
+    """Подтверждает получение диска администратором"""
+    admin_id = callback.from_user.id
+    rental_id = callback_data.rental_id
+
+    logger.info(f"Администратор {admin_id} подтверждает получение аренды {rental_id}")
+
+    try:
+        rental_repo = RentalRepository(session)
+        success = await rental_repo.confirm_take(rental_id)
+
+        if not success:
+            await callback.answer("❌ Ошибка при подтверждении получения")
+            return
+
+        await callback.answer("✅ Получение успешно подтверждено!")
+        await show_take_requests(callback, session)
+        logger.info(f"Администратор {admin_id} подтвердил получение аренды {rental_id}")
+
+    except Exception as e:
+        logger.error(f"Ошибка при подтверждении получения: {str(e)}", exc_info=True)
+        await callback.answer("❌ Ошибка при подтверждении получения")
+
+
+@router.callback_query(RentalCallback.filter(F.action == "reject_take"))
+async def reject_take_request(callback: CallbackQuery, callback_data: RentalCallback, session: AsyncSession):
+    """Отклоняет получение диска администратором"""
+    admin_id = callback.from_user.id
+    rental_id = callback_data.rental_id
+
+    logger.info(f"Администратор {admin_id} отклоняет получение аренды {rental_id}")
+
+    try:
+        rental_repo = RentalRepository(session)
+        rental = await rental_repo.get_by_id(rental_id)
+        if not rental:
+            await callback.answer("❌ Аренда не найдена")
+            return
+
+        # Отклоняем получение (можно добавить логику возврата в очередь)
+        await callback.answer("❌ Получение отклонено")
+        await show_take_requests(callback, session)
+        logger.info(f"Администратор {admin_id} отклонил получение аренды {rental_id}")
+
+    except Exception as e:
+        logger.error(f"Ошибка при отклонении получения: {str(e)}", exc_info=True)
+        await callback.answer("❌ Ошибка при отклонении получения")
