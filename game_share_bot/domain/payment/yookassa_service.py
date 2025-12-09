@@ -28,6 +28,25 @@ async def create_payment(
 ) -> Tuple[str, str]:
     amount = subscription_plan.monthly_price * duration
 
+    receipt = {
+        "customer": {
+            "phone": user.phone
+        },
+        "items": [
+            {
+                "description": f"Подписка {subscription_plan.name}",
+                "quantity": str(duration),  # Количество месяцев
+                "amount": {
+                    "value": f"{subscription_plan.monthly_price:.2f}",  # Цена за месяц
+                    "currency": "RUB"
+                },
+                "vat_code": 1,  # Без НДС (для УСН)
+                "payment_mode": "full_payment",  # Полный расчет
+                "payment_subject": "service"  # Услуга
+            }
+        ]
+    }
+
     payment_data = {
         "amount": {
             "value": f"{amount:.2f}",
@@ -39,7 +58,7 @@ async def create_payment(
         },
         "capture": True,
         "description": f"Подписка {subscription_plan.name} на {duration} мес.",
-        # TODO: заполнить receipt, https://yookassa.ru/developers/api#create_payment_receipt
+        "receipt": receipt,
         "metadata": {
             "user_id": str(user.id),
             "plan_id": subscription_plan.id,
@@ -76,7 +95,6 @@ async def create_upgrade_payment(
     if additional_amount <= 0:
         raise ValueError("Доплата не требуется или новый план дешевле. Платеж не создается.")
 
-
     payment_data = {
         "amount": {
             "value": f"{additional_amount:.2f}",
@@ -91,7 +109,7 @@ async def create_upgrade_payment(
             f"Доплата за повышение тарифа с {current_subscription.plan.name} "
             f"до {target_plan.name} (осталось {current_subscription.end_date.strftime('%d.%m.%Y')})"
         ),
-        # TODO: заполнить receipt
+        # "receipt": receipt,
         "metadata": {
             "user_id": str(user.id),
             "current_plan_id": current_subscription.plan.id,
