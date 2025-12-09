@@ -56,10 +56,10 @@ async def main():
 
     bot = Bot(token=BOT_TOKEN)
 
-    # redis_client = redis.Redis(host="redis", port=6379, db=0)
-    # storage = RedisStorage(redis_client)
+    redis_client = redis.Redis(host="redis", port=6379, db=0)
+    storage = RedisStorage(redis_client)
 
-    dp = Dispatcher()
+    dp = Dispatcher(storage=storage)
     dp.update.middleware(DbSessionMiddleware(session_pool=session_maker))
 
     await set_default_commands(bot)
@@ -69,9 +69,6 @@ async def main():
         logger.debug(f"Подключен роутер: {router.name}")
 
     async def on_startup(dp: Dispatcher):
-        # from game_share_bot.scheduler.global_vars import set_globals
-        # set_globals(bot, session_maker)
-
         scheduler = get_scheduler(bot, session_maker)
         scheduler.start()
 
