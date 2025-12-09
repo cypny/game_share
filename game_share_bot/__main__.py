@@ -56,10 +56,10 @@ async def main():
 
     bot = Bot(token=BOT_TOKEN)
 
-    redis_client = redis.Redis(host="redis", port=6379, db=0)
-    storage = RedisStorage(redis_client)
+    # redis_client = redis.Redis(host="redis", port=6379, db=0)
+    # storage = RedisStorage(redis_client)
 
-    dp = Dispatcher(storage=storage)
+    dp = Dispatcher()
     dp.update.middleware(DbSessionMiddleware(session_pool=session_maker))
 
     await set_default_commands(bot)

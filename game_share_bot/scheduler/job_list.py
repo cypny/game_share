@@ -10,7 +10,8 @@ JOBS = [
     {
         "func": update_queue_to_rental,
         "trigger": "interval",
-        "minutes": 10,
+        # "minutes": 10,
+        "seconds": 10,
         # "seconds": 5,
         "id": "update_queue_to_rental"
     },
@@ -18,6 +19,7 @@ JOBS = [
         "func": check_pending_subscriptions,
         "trigger": "interval",
         "minutes": 10,
+        # "seconds": 10,
         # "seconds": 5,
         "id": "check_pending_subscriptions"
     },
