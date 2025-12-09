@@ -1,6 +1,4 @@
-from aiogram import Router, types, F
-from aiogram.filters import StateFilter
-from aiogram.fsm.state import State, default_state
+from aiogram import F, Router, types
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,7 +6,6 @@ from game_share_bot.core.callbacks import CatalogCallback
 from game_share_bot.core.keyboards import catalog_keyboard
 from game_share_bot.infrastructure.repositories import GameRepository
 from game_share_bot.infrastructure.repositories.game_category import GameCategoryRepository
-
 from game_share_bot.infrastructure.utils import get_logger
 from game_share_bot.infrastructure.utils.formatting import format_games_list
 
@@ -39,10 +36,7 @@ async def catalog(callback: CallbackQuery, callback_data: CatalogCallback, sessi
         await callback.answer("❌ Ошибка при загрузке каталога")
 
 
-# TODO: слишком общий хэндлер, ловит чего не должен - ломает логику назначения админа
-# надо думать как исправить - можно оставить, и использовать FSMContext где ломает,
-# или создать раздел "поиск игры"
-@router.message(lambda message: not message.text.startswith('/'))
+@router.message(lambda message: not message.text.startswith("/"))
 async def search_game(message: types.Message, session: AsyncSession):
     query = message.text
     page = 0
@@ -73,9 +67,7 @@ async def category_games(message: types.Message, session: AsyncSession):
 
 
 async def _process_categories(
-        session: AsyncSession,
-        page: int = 0,
-        page_size: int = 10
+    session: AsyncSession, page: int = 0, page_size: int = 10
 ) -> tuple[str, InlineKeyboardMarkup]:
     category_repo = GameCategoryRepository(session)
 
@@ -97,10 +89,7 @@ async def _process_categories(
 
 
 async def _process_search_game(
-        query: str,
-        session: AsyncSession,
-        page: int = -1,
-        page_size: int = 10
+    query: str, session: AsyncSession, page: int = -1, page_size: int = 10
 ) -> tuple[str, InlineKeyboardMarkup]:
     game_repo = GameRepository(session)
 
@@ -108,25 +97,14 @@ async def _process_search_game(
     take = page_size
 
     if not query:
-        games = await game_repo.get_all(
-            skip=skip,
-            take=take
-        )
+        games = await game_repo.get_all(skip=skip, take=take)
         games.sort(key=lambda game: game.title)
         total_games = await game_repo.count_all()
     elif query.startswith("cat:"):
         category_id = int(query.split(":", 1)[1])
-        games, total_games = await game_repo.get_by_category(
-            category_id=category_id,
-            skip=skip,
-            take=take
-        )
+        games, total_games = await game_repo.get_by_category(category_id=category_id, skip=skip, take=take)
     else:
-        games, total_games = await game_repo.search_games(
-            query,
-            skip=skip,
-            take=take
-        )
+        games, total_games = await game_repo.search_games(query, skip=skip, take=take)
 
     if total_games == 0:
         if query and query.startswith("cat:"):

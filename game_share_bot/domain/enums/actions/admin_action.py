@@ -11,6 +11,7 @@ class AdminAction(StrEnum):
     VIEW_TAKE_REQUESTS = "view_take_requests"
 
     MANAGE_LIBRARY = "manage_library"
+    MANAGE_SUBSCRIBERS = "manage_subscribers"
     ADD_GAME = "add_game"
     DELETE_GAME = "delete_game"
     ADD_DISK = "add_disk"

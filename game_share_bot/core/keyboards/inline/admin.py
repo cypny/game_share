@@ -58,6 +58,7 @@ def admin_main_panel_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [admin_button("Управление библиотекой", AdminAction.MANAGE_LIBRARY)],
+            [admin_button("Управление подписками", AdminAction.MANAGE_SUBSCRIBERS)],
             [admin_button("Выдать админку", AdminAction.APPOINT)],
             [
                 admin_button("Запросы на возврат", AdminAction.VIEW_RETURN_REQUESTS),

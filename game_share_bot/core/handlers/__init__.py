@@ -5,6 +5,7 @@ from .admin.manage_library.delete_game import router as admin_delete_game_router
 from .admin.manage_library.add_disc import router as admin_add_disc_router
 from .admin.manage_library.delete_disc import router as admin_delete_disc_router
 from .admin.manage_library.manage_library import router as admin_manage_library_panel_router
+from .admin.manage_subscribers import router as admin_manage_subscribers_router
 from .admin.return_requests import router as admin_return_requests_router
 from .admin.notify_actions import router as admin_notify_actions_router
 from .debug import router as debug_router
@@ -23,6 +24,7 @@ routers = [
     # Админ панель
     admin_main_panel_router,
     admin_manage_library_panel_router,
+    admin_manage_subscribers_router,
     admin_appoint_router,
     admin_add_game_router,
     admin_delete_game_router,

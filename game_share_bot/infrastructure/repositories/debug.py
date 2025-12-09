@@ -55,7 +55,16 @@ class DebugRepository:
             "Приключения",
             "Научная фантастика",
             "Вестерн",
-            "Головоломка",
+            "Головоломки",
+            "Гонки",
+            "Шутер",
+            "Файтинг",
+            "Стратегии",
+            "Интерактивное кино",
+            "Платформеры",
+            "Спортивные симуляторы",
+            "Кооперативные",
+            "Многопользовательские",
             "Мифология",
         ]
 
@@ -100,7 +109,7 @@ class DebugRepository:
                 cover_image_url="https://cdn.freelance.ru/images/att/1839492_900_600.png",
                 categories=[
                     categories["Приключения"],
-                    categories["Головоломка"],
+                    categories["Головоломки"],
                     categories["Экшен"],
                 ],
             ),
@@ -113,6 +122,62 @@ class DebugRepository:
                     categories["RPG"],
                     categories["Мифология"],
                 ],
+            ),
+            Game(
+                title="Смута",
+                description="Игра года",
+                cover_image_url="https://cdn.freelance.ru/images/att/1839492_900_600.png",
+                categories=[
+                    categories["Экшен"],
+                ],
+            ),
+            Game(
+                title="Смута 2: Месть Степана",
+                description="absolute cinema",
+                cover_image_url="https://cdn.freelance.ru/images/att/1839492_900_600.png",
+                categories=[
+                    categories["Экшен"],
+                ],
+            ),
+            Game(
+                title="Смута 3: Возвращение Савы",
+                description="Эпично",
+                cover_image_url="https://cdn.freelance.ru/images/att/1839492_900_600.png",
+                categories=[
+                    categories["Экшен"],
+                ],
+            ),
+            Game(
+                title="Клэш рояль",
+                description="Описания не будет",
+                cover_image_url="https://cdn.freelance.ru/images/att/1839492_900_600.png",
+                categories=[
+                    categories["Стратегии"],
+                ],
+            ),
+            Game(
+                title="Battelfield 6",
+                description="Описания не будет",
+                cover_image_url="https://cdn.freelance.ru/images/att/1839492_900_600.png",
+                categories=[categories["Шутер"], categories["Многопользовательские"]],
+            ),
+            Game(
+                title="Mortal Combat",
+                description="Описания не будет",
+                cover_image_url="https://cdn.freelance.ru/images/att/1839492_900_600.png",
+                categories=[categories["Шутер"], categories["Многопользовательские"]],
+            ),
+            Game(
+                title="Need for Speed",
+                description="Описания не будет",
+                cover_image_url="https://cdn.freelance.ru/images/att/1839492_900_600.png",
+                categories=[categories["Гонки"], categories["Многопользовательские"]],
+            ),
+            Game(
+                title="Шахматы 2",
+                description="Долгожданное обновление",
+                cover_image_url="https://cdn.freelance.ru/images/att/1839492_900_600.png",
+                categories=[categories["Стратегии"], categories["Многопользовательские"]],
             ),
         ]
         logger.info(f"Добавлено {len(test_games)} игр")
