@@ -17,6 +17,7 @@ from .menu.rented_disks import router as rented_disks_router
 from .start import router as start_router
 from .user.queue import router as queue_router
 from .user.subscription import router as user_subscription_router
+from .user.sub_upgrade import router as sub_upgrade_router
 from .user.rental_history import router as rental_history_router
 from .admin.stats import router as admin_stats_router
 
@@ -48,6 +49,7 @@ routers = [
 
     # Подписки и очередь
     user_subscription_router,
+    sub_upgrade_router,
     queue_router,
 
     # Отладка

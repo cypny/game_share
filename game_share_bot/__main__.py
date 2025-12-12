@@ -69,9 +69,6 @@ async def main():
         logger.debug(f"Подключен роутер: {router.name}")
 
     async def on_startup(dp: Dispatcher):
-        # from game_share_bot.scheduler.global_vars import set_globals
-        # set_globals(bot, session_maker)
-
         scheduler = get_scheduler(bot, session_maker)
         scheduler.start()
 

@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta, timezone
 
 from aiogram import F, Router
@@ -14,6 +15,7 @@ from game_share_bot.core.keyboards import (
     subscription_actions_kb,
 )
 from game_share_bot.core.keyboards.inline.subscription import payment_redirect_kb
+from game_share_bot.core.services.check_payment import check_payment_polling
 from game_share_bot.core.states.subscription.subscribe import SubscriptionState
 from game_share_bot.domain.enums.subscription.action import SubscriptionAction
 from game_share_bot.domain.enums.subscription_status import SubscriptionStatus
@@ -22,6 +24,7 @@ from game_share_bot.infrastructure.models import SubscriptionPlan
 from game_share_bot.infrastructure.repositories import SubscriptionRepository, UserRepository
 from game_share_bot.infrastructure.utils import get_logger
 from game_share_bot.infrastructure.utils.formatting import format_subscription_info, format_subscription_plan
+from game_share_bot.scheduler.job_container import job_container
 
 router = Router()
 logger = get_logger(__name__)
@@ -31,25 +34,33 @@ logger = get_logger(__name__)
 async def subscription_info_and_buying(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     user_repo = UserRepository(session)
     sub_repo = SubscriptionRepository(session)
-    user = await user_repo.get_by_tg_id(callback.from_user.id)
-    subscriptions = await sub_repo.get_all_by_user(user)
-    active_sub = None
-    for sub in subscriptions:
-        if sub.status == SubscriptionStatus.ACTIVE:
-            active_sub = sub
-    plans = await session.scalars(
-        select(SubscriptionPlan)
-    )
+    try:
+        user = await user_repo.get_by_tg_id(callback.from_user.id)
+        if user is None:
+            await callback.answer("Необходима регистрация")
+            return
+        subscriptions = await sub_repo.get_all_by_user(user)
+        active_sub = None
+        for sub in subscriptions:
+            if sub.status == SubscriptionStatus.ACTIVE:
+                active_sub = sub
+        plans = await session.scalars(
+            select(SubscriptionPlan)
+        )
 
-    plan_infos = [{"id": plan.id, "name": plan.name} for plan in plans]
-    await callback.answer()
-    await callback.message.edit_text(
-        text=format_subscription_info(active_sub),
-        reply_markup=subscription_actions_kb(plan_infos),
-        parse_mode="HTML"
-    )
+        plan_infos = [{"id": plan.id, "name": plan.name, "cost": plan.monthly_price} for plan in plans]
+        await callback.answer()
+        await callback.message.edit_text(
+            text=format_subscription_info(active_sub),
+            reply_markup=subscription_actions_kb(plan_infos, active_sub),
+            parse_mode="HTML"
+        )
 
-    await state.set_state(SubscriptionState.choosing_plan)
+        await state.set_state(SubscriptionState.choosing_plan)
+    except Exception as e:
+        await callback.answer("Ошибка")
+        logger.error(e)
+        return
 
 
 @router.callback_query(SubscriptionCallback.filter(F.action == SubscriptionAction.SELECT_DURATION))
@@ -150,29 +161,6 @@ async def purchase_subscription(callback: CallbackQuery, session: AsyncSession, 
     else:
         await callback.answer("Ошибка")
 
+    asyncio.create_task(check_payment_polling(payment_id))
     await state.clear()
 
-
-@router.callback_query(SubscriptionCallback.filter(F.action == SubscriptionAction.CONFIRM_YOOKASSA_PAYMENT))
-async def check_payment(callback: CallbackQuery, session: AsyncSession):
-    sub_repo = SubscriptionRepository(session)
-    user_repo = UserRepository(session)
-
-    user = await user_repo.get_by_tg_id(callback.from_user.id)
-
-    subscriptions = await sub_repo.get_all_by_user(user)
-    for subscription in subscriptions:
-        if subscription.status == SubscriptionStatus.PENDING_PAYMENT:
-            payment_status = await get_payment_status(str(subscription.yookassa_payment_id))
-
-            if payment_status == "succeeded":
-                await sub_repo.update(subscription.id, status=SubscriptionStatus.ACTIVE)
-
-                await callback.answer()
-                await callback.message.edit_text(
-                    text="Оплата прошла успешно",
-                    reply_markup=return_kb(SubscriptionCallback(action=SubscriptionAction.INFO)),
-                )
-                return
-
-    await callback.answer("Оплата не завершена")

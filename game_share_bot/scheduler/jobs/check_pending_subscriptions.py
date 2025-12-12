@@ -3,6 +3,7 @@ import logging
 
 from yookassa import Payment
 
+from game_share_bot.core.services.check_payment import _on_success
 from game_share_bot.domain.enums.subscription_status import SubscriptionStatus
 from game_share_bot.infrastructure.repositories import SubscriptionRepository
 from game_share_bot.scheduler.job_container import job_container
@@ -20,17 +21,7 @@ async def check_pending_subscriptions():
                 status = payment.status
 
                 if status == "succeeded":
-                    await sub_repo.update(sub.id, status=SubscriptionStatus.ACTIVE)
-
-                    try:
-                        await job_container.bot.send_message(
-                            sub.user.tg_id,
-                            f"✅ Ваша подписка {sub.plan.name} активирована до {sub.end_date.strftime('%d.%m.%Y')}."
-                        )
-                    except Exception as e:
-                        logger.warning(f"Не удалось отправить сообщение пользователю {sub.user.tg_id}: {e}")
-
-                    logger.info(f"Подписка {sub.id} активирована (оплата прошла)")
+                    await _on_success(sub_repo, sub)
 
                 elif status in ("canceled", "expired"):
                     await sub_repo.update(sub.id, status=SubscriptionStatus.CANCELED_PAYMENT)
@@ -40,4 +31,5 @@ async def check_pending_subscriptions():
                     logger.debug(f"Подписка {sub.id} в статусе {status}, ждем оплаты")
 
             except Exception as e:
-                logger.error(f"Ошибка при проверке подписки {sub.id}: {e}")
+                logger.error(f"Ошибка при проверке подписки {sub.id}: {e}", exc_info=True)
+        await session.commit()

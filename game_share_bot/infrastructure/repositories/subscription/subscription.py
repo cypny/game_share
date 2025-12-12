@@ -17,9 +17,11 @@ class SubscriptionRepository(BaseRepository[Subscription]):
         return await super().get_all_by_field("user_id", user.id, options=[joinedload(Subscription.plan)])
 
     async def get_active_by_user(self, user: User) -> Subscription | None:
-        stmt = select(Subscription).where(
+        stmt = (select(Subscription)
+        .options(joinedload(Subscription.plan))
+        .where(
             Subscription.status == SubscriptionStatus.ACTIVE, Subscription.user_id == user.id
-        )
+        ))
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 

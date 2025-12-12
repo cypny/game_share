@@ -7,3 +7,5 @@ class SubscriptionAction(StrEnum):
     CONFIRM_BUY = "confirm_buy"
     BUY = "buy"
     CONFIRM_YOOKASSA_PAYMENT = "confirm_yookassa_payment"
+    UPGRADE = "upgrade"
+    BUY_UPGRADE = "buy_upgrade"
