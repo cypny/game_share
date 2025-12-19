@@ -15,7 +15,7 @@ reset:
 	$(MAKE) wait_db
 	$(MAKE) drop_db
 	$(MAKE) init_db
-	rm -f alembic/versions/*.py
+	$(DOCKER_RUN_BOT) rm -f app/alembic/versions/*.py
 	$(MAKE) migration
 	$(MAKE) migrate
 	$(MAKE) down
@@ -42,6 +42,7 @@ down:
 
 # Создать миграцию (контейнеры должны быть запущены)
 migration:
+	$(DOCKER_RUN_BOT) mkdir -p /app/alembic/versions
 	$(DOCKER_RUN_BOT) alembic revision --autogenerate
 
 # Применить миграцию (контейнеры должны быть запущены)
