@@ -12,7 +12,6 @@ reset:
 	${DOCKER_COMPOSE} down -v
 	$(MAKE) build
 	$(MAKE) up-d
-	$(MAKE) wait_db
 	$(MAKE) drop_db
 	$(MAKE) init_db
 	$(DOCKER_RUN_BOT) rm -f app/alembic/versions/*.py
@@ -20,13 +19,7 @@ reset:
 	$(MAKE) migrate
 	$(MAKE) down
 
-# Проверяет, запущена ли бд; ждет запуска
-wait_db:
-	@echo "Waiting for DB to become healthy..."
-	@until [ "$$(docker inspect --format='{{.State.Health.Status}}' $$(docker compose ps -q db))" = "healthy" ]; do \
-		sleep 2; \
-	done
-	@echo "DB is healthy!"
+
 
 # Сборка контейнеров
 build:
