@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_share_bot.core.callbacks import AdminCallback, RentalCallback
-from game_share_bot.core.keyboards import rental_actions_confirmation_kb, return_to_admin_main_panel_kb
+from game_share_bot.core.keyboards import return_to_admin_main_panel_kb
 from game_share_bot.domain.enums import AdminAction, RentalStatus
 from game_share_bot.infrastructure.models import Rental
 from game_share_bot.infrastructure.repositories import RentalRepository
@@ -31,22 +31,55 @@ def _format_pending_returns_message(rentals: list[Rental]) -> str:
     return f"📋 Запросы на возврат ({len(rentals)}):\n\n{returns_str}"
 
 
+def _format_single_return_message(rental: Rental, current_page: int, total_count: int) -> str:
+    """Форматирует сообщение для одного запроса на возврат"""
+    user_info = f"👤 @{rental.user.name} (ID: {rental.user.tg_id})"
+    game_info = f"🎮 {rental.disc.game.title} - Диск {rental.disc.disc_id}"
+    return_info = f"📅 Начало аренды: {rental.start_date.strftime('%d.%m.%Y')}"
+
+    return (
+        f"📋 Запрос на возврат ({current_page + 1}/{total_count}):\n\n"
+        f"{user_info}\n"
+        f"{game_info}\n"
+        f"{return_info}"
+    )
+
+
 @router.callback_query(AdminCallback.filter_by_action(AdminAction.VIEW_RETURN_REQUESTS))
-async def show_return_requests(callback: CallbackQuery, session: AsyncSession):
+async def show_return_requests(callback: CallbackQuery, callback_data: AdminCallback, session: AsyncSession):
     """Показывает все запросы на возврат для администратора"""
     user_id = callback.from_user.id
-    logger.info(f"Администратор {user_id} запросил список запросов на возврат")
+    page = callback_data.page
+    logger.info(f"Администратор {user_id} запросил список запросов на возврат (страница {page})")
 
     try:
         rental_repo = RentalRepository(session)
         pending_returns = await rental_repo.get_rentals_by_status(RentalStatus.PENDING_RETURN)
 
-        text = _format_pending_returns_message(pending_returns)
-        markup = rental_actions_confirmation_kb(pending_returns,
-                                                "return") if pending_returns else return_to_admin_main_panel_kb()
+        if not pending_returns:
+            text = "📋 Запросы на возврат отсутствуют"
+            markup = return_to_admin_main_panel_kb()
+            await callback.message.edit_text(text, reply_markup=markup)
+            return
+
+        # Проверяем валидность страницы
+        if page >= len(pending_returns):
+            page = 0
+
+        current_rental = pending_returns[page]
+        text = _format_single_return_message(current_rental, page, len(pending_returns))
+
+        from game_share_bot.core.keyboards.inline.admin import rental_action_single_kb
+        markup = rental_action_single_kb(
+            current_rental,
+            "return",
+            page,
+            len(pending_returns),
+            AdminAction.VIEW_RETURN_REQUESTS
+        )
 
         await callback.message.edit_text(text, reply_markup=markup)
-        logger.info(f"Список запросов на возврат отправлен администратору {user_id}")
+        logger.info(f"Запрос на возврат ({page + 1}/{len(pending_returns)}) отправлен администратору {user_id}")
 
     except Exception as e:
         logger.error(f"Ошибка при получении запросов на возврат: {str(e)}", exc_info=True)
@@ -70,7 +103,9 @@ async def confirm_return_request(callback: CallbackQuery, callback_data: RentalC
             return
 
         await callback.answer("✅ Возврат успешно подтвержден!")
-        await show_return_requests(callback, session)
+
+        # Показываем следующий запрос или возвращаемся к панели
+        await show_return_requests(callback, AdminCallback(action=AdminAction.VIEW_RETURN_REQUESTS, page=0), session)
         logger.info(f"Администратор {admin_id} подтвердил возврат аренды {rental_id}")
 
     except Exception as e:
@@ -95,7 +130,9 @@ async def reject_return_request(callback: CallbackQuery, callback_data: RentalCa
             return
 
         await callback.answer("❌ Возврат отклонен")
-        await show_return_requests(callback, session)
+
+        # Показываем следующий запрос или возвращаемся к панели
+        await show_return_requests(callback, AdminCallback(action=AdminAction.VIEW_RETURN_REQUESTS, page=0), session)
         logger.info(f"Администратор {admin_id} отклонил возврат аренды {rental_id}")
 
     except Exception as e:
@@ -123,22 +160,55 @@ def _format_pending_takes_message(rentals: list[Rental]) -> str:
     return f"📋 Запросы на получение ({len(rentals)}):\n\n{takes_str}"
 
 
+def _format_single_take_message(rental: Rental, current_page: int, total_count: int) -> str:
+    """Форматирует сообщение для одного запроса на получение"""
+    user_info = f"👤 @{rental.user.name} (ID: {rental.user.tg_id})"
+    game_info = f"🎮 {rental.disc.game.title} - Диск {rental.disc.disc_id}"
+    created_info = f"📅 Создан: {rental.start_date.strftime('%d.%m.%Y %H:%M')}"
+
+    return (
+        f"📋 Запрос на получение ({current_page + 1}/{total_count}):\n\n"
+        f"{user_info}\n"
+        f"{game_info}\n"
+        f"{created_info}"
+    )
+
+
 @router.callback_query(AdminCallback.filter_by_action(AdminAction.VIEW_TAKE_REQUESTS))
-async def show_take_requests(callback: CallbackQuery, session: AsyncSession):
+async def show_take_requests(callback: CallbackQuery, callback_data: AdminCallback, session: AsyncSession):
     """Показывает все запросы на получение для администратора"""
     user_id = callback.from_user.id
-    logger.info(f"Администратор {user_id} запросил список запросов на получение")
+    page = callback_data.page
+    logger.info(f"Администратор {user_id} запросил список запросов на получение (страница {page})")
 
     try:
         rental_repo = RentalRepository(session)
         pending_takes = await rental_repo.get_rentals_by_status(RentalStatus.PENDING_TAKE)
 
-        text = _format_pending_takes_message(pending_takes)
-        markup = rental_actions_confirmation_kb(pending_takes,
-                                                "take") if pending_takes else return_to_admin_main_panel_kb()
+        if not pending_takes:
+            text = "📋 Запросы на получение отсутствуют"
+            markup = return_to_admin_main_panel_kb()
+            await callback.message.edit_text(text, reply_markup=markup)
+            return
+
+        # Проверяем валидность страницы
+        if page >= len(pending_takes):
+            page = 0
+
+        current_rental = pending_takes[page]
+        text = _format_single_take_message(current_rental, page, len(pending_takes))
+
+        from game_share_bot.core.keyboards.inline.admin import rental_action_single_kb
+        markup = rental_action_single_kb(
+            current_rental,
+            "take",
+            page,
+            len(pending_takes),
+            AdminAction.VIEW_TAKE_REQUESTS
+        )
 
         await callback.message.edit_text(text, reply_markup=markup)
-        logger.info(f"Список запросов на получение отправлен администратору {user_id}")
+        logger.info(f"Запрос на получение ({page + 1}/{len(pending_takes)}) отправлен администратору {user_id}")
 
     except Exception as e:
         logger.error(f"Ошибка при получении запросов на получение: {str(e)}", exc_info=True)
@@ -162,7 +232,9 @@ async def confirm_take_request(callback: CallbackQuery, callback_data: RentalCal
             return
 
         await callback.answer("✅ Получение успешно подтверждено!")
-        await show_take_requests(callback, session)
+
+        # Показываем следующий запрос или возвращаемся к панели
+        await show_take_requests(callback, AdminCallback(action=AdminAction.VIEW_TAKE_REQUESTS, page=0), session)
         logger.info(f"Администратор {admin_id} подтвердил получение аренды {rental_id}")
 
     except Exception as e:
@@ -187,7 +259,9 @@ async def reject_take_request(callback: CallbackQuery, callback_data: RentalCall
 
         # Отклоняем получение (можно добавить логику возврата в очередь)
         await callback.answer("❌ Получение отклонено")
-        await show_take_requests(callback, session)
+
+        # Показываем следующий запрос или возвращаемся к панели
+        await show_take_requests(callback, AdminCallback(action=AdminAction.VIEW_TAKE_REQUESTS, page=0), session)
         logger.info(f"Администратор {admin_id} отклонил получение аренды {rental_id}")
 
     except Exception as e:

@@ -100,38 +100,34 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
             await callback.answer("❌ Вы уже стоите в очереди за этой игрой")
             return
 
-        available_disc = await disc_repo.get_available_disc_by_game(game_id)
-
-        if not available_disc:
-            await callback.answer("❌ Все диски этой игры заняты")
-            return
-
         game = await game_repo.get_by_id(game_id)
         if not game:
             await callback.answer("❌ Игра не найдена")
             return
 
-        new_entry = await queue_repo.create_queue_entry(user.id, game_id)
+        available_disc = await disc_repo.get_available_disc_by_game(game_id)
 
-        await session.flush()
-        await update_queue_to_rental_internal(session)
-        await session.flush()
-        await session.refresh(user)
+        # Если диск свободен - сразу создаем rental для взятия диска
+        if available_disc:
+            logger.info(f"Диск свободен, создаем rental для пользователя {tg_id}")
 
-        logger.info(f"{new_entry}")
+            # Создаем rental со статусом PENDING_TAKE
+            from game_share_bot.domain.enums import DiscStatus
+            new_rental = await rental_repo.create(
+                user_id=user.id,
+                disc_id=available_disc.disc_id,
+                status_id=RentalStatus.PENDING_TAKE
+            )
 
-        # Проверяем, был ли создан rental со статусом PENDING_TAKE
-        pending_rental = next(
-            (rental for rental in user.rentals
-             if rental.disc.game_id == game_id and rental.status_id == RentalStatus.PENDING_TAKE),
-            None
-        )
+            # Помечаем диск как арендованный
+            available_disc.status_id = DiscStatus.RENTED
 
-        # Если создан rental (пользователь первый в очереди) - показываем окно подтверждения
-        if pending_rental:
-            logger.info(f"Пользователь {tg_id} стал первым в очереди, показываем окно подтверждения для rental {pending_rental.id}")
+            await session.flush()
+            await session.refresh(user)
 
-            await state.update_data(rental_id=pending_rental.id)
+            logger.info(f"Создан rental {new_rental.id} для пользователя {tg_id}, показываем окно подтверждения")
+
+            await state.update_data(rental_id=new_rental.id)
             await state.set_state(TakeDiscState.waiting_for_confirmation)
 
             await callback.answer("✅ Диск готов к получению!")
@@ -140,10 +136,17 @@ async def enter_game_queue(callback: CallbackQuery, callback_data: GameCallback,
                 f"❓ Вы точно взяли диск?\n\n"
                 f"⚠️ Пожалуйста, подтвердите только после того, как физически забрали диск.",
                 parse_mode="HTML",
-                reply_markup=take_disc_confirmation_kb(pending_rental.id)
+                reply_markup=take_disc_confirmation_kb(new_rental.id)
             )
         else:
-            # Пользователь встал в очередь, но не первый
+            # Все диски заняты - ставим пользователя в очередь
+            logger.info(f"Все диски заняты, ставим пользователя {tg_id} в очередь")
+
+            new_entry = await queue_repo.create_queue_entry(user.id, game_id)
+            await session.flush()
+
+            logger.info(f"Создана запись в очереди {new_entry.id} для пользователя {tg_id}")
+
             await callback.answer(f"✅ Вы успешно встали в очередь за игрой '{game.title}'!")
 
         game_status_info = await _get_game_status_info(user, game, session)

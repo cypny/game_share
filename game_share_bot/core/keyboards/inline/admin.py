@@ -54,6 +54,60 @@ def rental_actions_confirmation_kb(rentals: list[Rental], action_type: str) -> I
     return InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
 
+def rental_action_single_kb(rental: Rental, action_type: str, current_page: int, total_count: int, admin_action: AdminAction) -> InlineKeyboardMarkup:
+    """Создает клавиатуру для одного rental с кнопками действия и пагинацией"""
+    keyboard_buttons = []
+
+    # Определяем текст действия в зависимости от типа
+    action_text = "возврат" if action_type == "return" else "получение"
+
+    # Кнопки действия
+    keyboard_buttons.append([
+        InlineKeyboardButton(
+            text=f"✅ Подтвердить {action_text}",
+            callback_data=RentalCallback(action=f"confirm_{action_type}", rental_id=rental.id).pack(),
+        )
+    ])
+
+    keyboard_buttons.append([
+        InlineKeyboardButton(
+            text=f"❌ Отклонить {action_text}",
+            callback_data=RentalCallback(action=f"reject_{action_type}", rental_id=rental.id).pack(),
+        )
+    ])
+
+    # Пагинация
+    pagination_buttons = []
+    if current_page > 0:
+        pagination_buttons.append(
+            InlineKeyboardButton(
+                text="⬅️ Предыдущий",
+                callback_data=AdminCallback(action=admin_action, page=current_page - 1).pack()
+            )
+        )
+
+    if current_page < total_count - 1:
+        pagination_buttons.append(
+            InlineKeyboardButton(
+                text="Следующий ➡️",
+                callback_data=AdminCallback(action=admin_action, page=current_page + 1).pack()
+            )
+        )
+
+    if pagination_buttons:
+        keyboard_buttons.append(pagination_buttons)
+
+    # Кнопка возврата
+    keyboard_buttons.append([
+        InlineKeyboardButton(
+            text="⬅️ Назад в админ-панель",
+            callback_data=AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL).pack(),
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
+
+
 def admin_main_panel_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[

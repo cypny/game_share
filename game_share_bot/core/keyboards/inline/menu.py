@@ -98,6 +98,7 @@ def catalog_keyboard(
     page_size: int,
     query: str,
     hide_nav_buttons: bool = False,
+    category_id: int | None = None,
 ) -> InlineKeyboardMarkup:
     total_pages = (total_games + page_size - 1) // page_size
     buttons: list[list[InlineKeyboardButton]] = []
@@ -108,7 +109,7 @@ def catalog_keyboard(
             pagination_buttons.append(
                 InlineKeyboardButton(
                     text="⬅️ Назад",
-                    callback_data=CatalogCallback(query=query, page=current_page - 1).pack()
+                    callback_data=CatalogCallback(query=query, page=current_page - 1, category_id=category_id).pack()
                 )
             )
 
@@ -116,23 +117,13 @@ def catalog_keyboard(
             pagination_buttons.append(
                 InlineKeyboardButton(
                     text="Вперед ➡️",
-                    callback_data=CatalogCallback(query=query, page=current_page + 1).pack()
+                    callback_data=CatalogCallback(query=query, page=current_page + 1, category_id=category_id).pack()
                 )
             )
 
     if pagination_buttons:
         buttons.append(pagination_buttons)
 
-    # Дополнительная кнопка "Все игры" на экране категорий
-    if query == "__categories__":
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="📚 Все игры",
-                    callback_data=CatalogCallback(query="", page=0).pack()
-                )
-            ]
-        )
 
     buttons.append([to_main_menu_button()])
 
