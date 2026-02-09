@@ -6,6 +6,10 @@ from .admin.manage_library.add_disc import router as admin_add_disc_router
 from .admin.manage_library.delete_disc import router as admin_delete_disc_router
 from .admin.manage_library.manage_library import router as admin_manage_library_panel_router
 from .admin.manage_subscribers import router as admin_manage_subscribers_router
+from .admin.manage_subscriptions.give_sub import router as admin_give_sub_router
+from .admin.manage_subscriptions.delete_sub import router as delete_sub_router
+from .admin.manage_subscriptions.change_sub_type import router as change_sub_type_router
+from .admin.manage_subscriptions.extend_sub import router as extend_sub_router
 from .admin.return_requests import router as admin_return_requests_router
 from .admin.notify_actions import router as admin_notify_actions_router
 from .debug import router as debug_router
@@ -34,6 +38,10 @@ routers = [
     admin_return_requests_router,
     admin_stats_router,
     admin_notify_actions_router,
+    admin_give_sub_router,
+    delete_sub_router,
+    change_sub_type_router,
+    extend_sub_router,
 
     # Стартовые и основные
     start_router,

@@ -1,9 +1,11 @@
+from typing import List, Tuple
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from game_share_bot.core.callbacks import AdminCallback, RentalCallback
 from game_share_bot.core.keyboards.inline.buttons import admin_button, return_button
 from game_share_bot.core.keyboards.inline.common import return_kb
-from game_share_bot.domain.enums import AdminAction
+from game_share_bot.domain.enums import AdminAction, SubscriptionType
 from game_share_bot.infrastructure.models import Rental
 
 
@@ -172,4 +174,149 @@ def send_notification_kb() -> InlineKeyboardMarkup:
     )
 
 
+def manage_subscriptions_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="Выдать подписку",
+                        callback_data=AdminCallback(action=AdminAction.GIVE_SUB).pack()
+                    ),
+                ],
 
+                [
+                    InlineKeyboardButton(
+                        text="Удалить подписку",
+                        callback_data=AdminCallback(action=AdminAction.REMOVE_SUBSCRIPTION).pack()
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="Поменять тип подписки",
+                        callback_data=AdminCallback(action=AdminAction.CHANGE_SUBSCRIPTION_TYPE).pack()
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="Продлить подписку",
+                        callback_data=AdminCallback(action=AdminAction.EXTEND_SUBSCRIPTION).pack()
+                    )
+                ],
+                [
+                    return_button(AdminCallback(action=AdminAction.RETURN_TO_MAIN_PANEL))
+                ]
+
+        ]
+    )
+
+
+def select_sub_plan_kb(sub_plans: List[Tuple[str, int]], is_new_plan = False) -> InlineKeyboardMarkup:
+    action = AdminAction.SELECT_PLAN if not is_new_plan else AdminAction.SELECT_NEW_PLAN
+    buttons = []
+    for sub_plan in sub_plans:
+        name = sub_plan[0]
+        plan_id = sub_plan[1]
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=name,
+                    callback_data=AdminCallback(action=action, plan_id=plan_id).pack()
+                )
+            ]
+        )
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+
+def confirm_remove_subscription_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✅ Да, удалить подписку",
+                    callback_data=AdminCallback(
+                        action=AdminAction.CONFIRM_REMOVE_SUBSCRIPTION
+                    ).pack()
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="❌ Нет, отменить",
+                    callback_data=AdminCallback(
+                        action=AdminAction.RETURN_TO_MAIN_PANEL
+                    ).pack()
+                )
+            ]
+        ]
+    )
+
+def confirm_change_plan_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="✅ Да, изменить тариф",
+                        callback_data=AdminCallback(
+                            action=AdminAction.CONFIRM_CHANGE_PLAN
+                        ).pack()
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="❌ Нет, отменить",
+                        callback_data=AdminCallback(
+                            action=AdminAction.RETURN_TO_MAIN_PANEL
+                        ).pack()
+                    )
+                ]
+            ]
+        )
+
+
+def create_extend_options_kb() -> InlineKeyboardMarkup:
+    """Создать клавиатуру с вариантами продления подписки"""
+    buttons = [
+        [
+            InlineKeyboardButton(
+                text="+1 месяц",
+                callback_data=AdminCallback(
+                    action=AdminAction.EXTEND_BY_MONTHS,
+                    months=1
+                ).pack()
+            ),
+            InlineKeyboardButton(
+                text="+3 месяца",
+                callback_data=AdminCallback(
+                    action=AdminAction.EXTEND_BY_MONTHS,
+                    months=3
+                ).pack()
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="+6 месяцев",
+                callback_data=AdminCallback(
+                    action=AdminAction.EXTEND_BY_MONTHS,
+                    months=6
+                ).pack()
+            ),
+            InlineKeyboardButton(
+                text="+12 месяцев",
+                callback_data=AdminCallback(
+                    action=AdminAction.EXTEND_BY_MONTHS,
+                    months=12
+                ).pack()
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="↩️ Назад",
+                callback_data=AdminCallback(
+                    action=AdminAction.RETURN_TO_MAIN_PANEL
+                ).pack()
+            )
+        ]
+    ]
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)

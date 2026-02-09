@@ -46,8 +46,7 @@ def format_subscriptions_message(subscriptions: list[Subscription]) -> str:
     return res
 
 
-def format_subscriber_message(user_subscriptions: list[Subscription]) -> str:
-    user = user_subscriptions[0].user
+def format_subscriber_message(user_subscriptions: list[Subscription], user: "User") -> str:
     is_active = any(user_subscription.status == SubscriptionStatus.ACTIVE for user_subscription in user_subscriptions)
     res = (
         f"Имя пользователя: {user.name}\n"
