@@ -110,11 +110,11 @@ async def confirm_take_disc(callback: CallbackQuery, callback_data: TakeDiscConf
             await state.clear()
             return
 
-        await callback.answer("✅ Вы успешно взяли диск!")
+        await callback.answer()
         logger.info(f"Пользователь {user_id} успешно взял диск по аренде {rental_id}")
 
         await state.clear()
-        await my_queue(callback, session, state)
+        await callback.message.edit_text(text="✅ Вы успешно взяли диск!")
 
     except Exception as e:
         logger.error(f"Ошибка при подтверждении взятия диска: {str(e)}", exc_info=True)
